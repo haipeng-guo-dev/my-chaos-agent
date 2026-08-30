@@ -1,0 +1,27 @@
+{
+  "name": "my-chaos-agent",
+  "version": "1.0.0",
+  "description": "<p align=\"center\">   <img src=\"agent-core/src/main/resources/my-chaos-agent.png\" alt=\"my-chaos-agent logo\" width=\"80\" height=\"80\" style=\"border-radius: 16px;\"> </p>",
+  "main": "screenshot.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://haipeng-guo-dev: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@github.com/haipeng-guo-dev/my-chaos-agent.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/haipeng-guo-dev/my-chaos-agent/issues"
+  },
+  "homepage": "https://github.com/haipeng-guo-dev/my-chaos-agent#readme",
+  "dependencies": {
+    "puppeteer": "^25.9.0"
+  }
+}

@@ -2,6 +2,8 @@ package com.chaosagent.agent;
 
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Modifier;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ChaosConfigTest {
@@ -39,16 +41,16 @@ class ChaosConfigTest {
         var cpuBackpressureEnabledField = ChaosConfig.class.getDeclaredField("cpuBackpressureEnabled");
         var cpuBackpressureIntensityField = ChaosConfig.class.getDeclaredField("cpuBackpressureIntensity");
 
-        assertThat(latencyMsField).isAnnotationPresent(volatile.class);
-        assertThat(latencyEnabledField).isAnnotationPresent(volatile.class);
-        assertThat(exceptionEnabledField).isAnnotationPresent(volatile.class);
-        assertThat(exceptionTypeField).isAnnotationPresent(volatile.class);
-        assertThat(pinningEnabledField).isAnnotationPresent(volatile.class);
-        assertThat(pinningProbabilityField).isAnnotationPresent(volatile.class);
-        assertThat(memoryPressureEnabledField).isAnnotationPresent(volatile.class);
-        assertThat(memoryPressureMbField).isAnnotationPresent(volatile.class);
-        assertThat(cpuBackpressureEnabledField).isAnnotationPresent(volatile.class);
-        assertThat(cpuBackpressureIntensityField).isAnnotationPresent(volatile.class);
+        assertThat(latencyMsField.getModifiers()).contains(Modifier.VOLATILE);
+        assertThat(latencyEnabledField.getModifiers()).contains(Modifier.VOLATILE);
+        assertThat(exceptionEnabledField.getModifiers()).contains(Modifier.VOLATILE);
+        assertThat(exceptionTypeField.getModifiers()).contains(Modifier.VOLATILE);
+        assertThat(pinningEnabledField.getModifiers()).contains(Modifier.VOLATILE);
+        assertThat(pinningProbabilityField.getModifiers()).contains(Modifier.VOLATILE);
+        assertThat(memoryPressureEnabledField.getModifiers()).contains(Modifier.VOLATILE);
+        assertThat(memoryPressureMbField.getModifiers()).contains(Modifier.VOLATILE);
+        assertThat(cpuBackpressureEnabledField.getModifiers()).contains(Modifier.VOLATILE);
+        assertThat(cpuBackpressureIntensityField.getModifiers()).contains(Modifier.VOLATILE);
     }
 
     @Test
