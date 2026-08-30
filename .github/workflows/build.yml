@@ -20,10 +20,7 @@ jobs:
           cache: maven
 
       - name: Run tests (agent-core only)
-        run: |
-          mvn test -pl agent-core --batch-mode -DargLine="--add-opens=java.base/com.sun.net.httpserver=ALL-UNNAMED --add-exports=java.base/com.sun.net.httpserver=ALL-UNNAMED --add-opens=java.base/sun.net.httpserver=ALL-UNNAMED --add-exports=java.base/sun.net.httpserver=ALL-UNNAMED" -X
-        env:
-          MAVEN_OPTS: "-Xmx2g"
+        run: mvn test -pl agent-core --batch-mode
 
       - name: Build with Maven
         run: mvn clean package -DskipTests --batch-mode
