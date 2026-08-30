@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="agent-core/src/main/resources/my-chaos-agent.png" alt="my-chaos-agent logo" width="80" height="80" style="border-radius: 16px;">
+</p>
+
 # my-chaos-agent
 
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
