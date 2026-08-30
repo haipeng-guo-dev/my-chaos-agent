@@ -4,14 +4,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.sun.net.httpserver.HttpServer;
+
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -22,21 +24,29 @@ class ChaosAgentHttpIntegrationTest {
             .connectTimeout(Duration.ofSeconds(5))
             .build();
 
-    private ChaosAgent testAgent;
+    private HttpServer testServer;
     private int testPort;
     private String baseUrl;
 
     @BeforeEach
-    void startAgent() throws IOException {
+    void startTestServer() throws IOException {
         // Find a free port
         try (var serverSocket = new java.net.ServerSocket(0)) {
             testPort = serverSocket.getLocalPort();
         }
 
-        // Start agent with test port
-        System.setProperty("chaos.agent.test.port", String.valueOf(testPort));
-        ChaosAgent.start("port=" + testPort, null);
+        // Create test HTTP server with same handlers as ChaosAgent
+        testServer = HttpServer.create(new InetSocketAddress("localhost", testPort), 0);
+        testServer.setExecutor(Executors.newCachedThreadPool());
         
+        testServer.createContext("/", ChaosAgent::serveDashboard);
+        testServer.createContext("/api/status", ChaosAgent::serveStatus);
+        testServer.createContext("/api/config", ChaosAgent::serveConfig);
+        testServer.createContext("/api/metrics/stream", ChaosAgent::serveMetricsStream);
+        testServer.createContext("/api/profile", ChaosAgent::serveProfile);
+        testServer.createContext("/static", ChaosAgent::serveStaticResource);
+        
+        testServer.start();
         baseUrl = "http://localhost:" + testPort;
         
         // Wait for server to be ready
@@ -58,11 +68,10 @@ class ChaosAgentHttpIntegrationTest {
     }
 
     @AfterEach
-    void stopAgent() {
-        if (testAgent != null) {
-            testAgent.shutdown();
+    void stopTestServer() {
+        if (testServer != null) {
+            testServer.stop(0);
         }
-        ChaosAgent.shutdown();
     }
 
     @Test

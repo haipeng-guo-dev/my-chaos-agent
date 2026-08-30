@@ -131,7 +131,8 @@ public class ChaosAgent {
         return DEFAULT_PORT;
     }
 
-    private static void serveDashboard(com.sun.net.httpserver.HttpExchange exchange) throws IOException {
+    // Package-private for testing
+    static void serveDashboard(com.sun.net.httpserver.HttpExchange exchange) throws IOException {
         String html = loadResource("index.html");
         if (html == null) {
             html = "<html><body><h1>Chaos Agent Dashboard</h1><p>index.html not found in resources</p></body></html>";
@@ -143,7 +144,8 @@ public class ChaosAgent {
         }
     }
 
-    private static void serveStatus(com.sun.net.httpserver.HttpExchange exchange) throws IOException {
+    // Package-private for testing
+    static void serveStatus(com.sun.net.httpserver.HttpExchange exchange) throws IOException {
         Runtime rt = Runtime.getRuntime();
         long totalMem = rt.totalMemory();
         long freeMem = rt.freeMemory();
@@ -193,7 +195,8 @@ public class ChaosAgent {
         }
     }
 
-    private static void serveConfig(com.sun.net.httpserver.HttpExchange exchange) throws IOException {
+    // Package-private for testing
+    static void serveConfig(com.sun.net.httpserver.HttpExchange exchange) throws IOException {
         String method = exchange.getRequestMethod();
 
         if ("GET".equals(method)) {
@@ -245,7 +248,8 @@ public class ChaosAgent {
         }
     }
 
-    private static void serveMetricsStream(com.sun.net.httpserver.HttpExchange exchange) throws IOException {
+    // Package-private for testing
+    static void serveMetricsStream(com.sun.net.httpserver.HttpExchange exchange) throws IOException {
         if (!"GET".equals(exchange.getRequestMethod())) {
             exchange.sendResponseHeaders(405, -1);
             return;
@@ -328,7 +332,8 @@ public class ChaosAgent {
         }
     }
 
-    private static void serveProfile(com.sun.net.httpserver.HttpExchange exchange) throws IOException {
+    // Package-private for testing
+    static void serveProfile(com.sun.net.httpserver.HttpExchange exchange) throws IOException {
         String method = exchange.getRequestMethod();
 
         if ("GET".equals(method)) {
@@ -428,7 +433,8 @@ public class ChaosAgent {
         return m.find() ? m.group(1) : defaultValue;
     }
 
-    private static void serveStaticResource(com.sun.net.httpserver.HttpExchange exchange) throws IOException {
+    // Package-private for testing
+    static void serveStaticResource(com.sun.net.httpserver.HttpExchange exchange) throws IOException {
         if (!"GET".equals(exchange.getRequestMethod())) {
             exchange.sendResponseHeaders(405, -1);
             return;
