@@ -19,6 +19,9 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Run tests
+        run: mvn test --batch-mode
+
       - name: Build with Maven
         run: mvn clean package -DskipTests --batch-mode
 
@@ -35,9 +38,3 @@ jobs:
           unzip -p "$JAR" META-INF/MANIFEST.MF | grep -i "Premain-Class"
           # Verify Byte Buddy is shaded
           unzip -l "$JAR" | grep -q "com/chaosagent/shaded/bytebuddy" && echo "Byte Buddy shaded ✓" || (echo "Byte Buddy NOT shaded ✗" && exit 1)
-
-      - name: Quick smoke test (compile only)
-        run: |
-          java -version
-          mvn compile --batch-mode -pl agent-core
-          mvn compile --batch-mode -pl sample-spring-app
