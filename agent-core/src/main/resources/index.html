@@ -24,87 +24,201 @@
         }
     </script>
     <style>
+        :root {
+            --bg-primary: #f9fafb;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f3f4f6;
+            --text-primary: #111827;
+            --text-secondary: #374151;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+            --border-hover: #d1d5db;
+            --card-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            --card-shadow-hover: 0 10px 25px -5px rgba(0,0,0,0.1);
+            --accent: #f59e0b;
+            --accent-hover: #d97706;
+            --accent-bg: #fef7ee;
+            --accent-text: #78350f;
+            --green-bg: #ecfdf5;
+            --green-text: #065f46;
+            --red-bg: #fef2f2;
+            --red-text: #991b1b;
+            --yellow-bg: #fffbeb;
+            --yellow-text: #92400e;
+            --code-bg: #f3f4f6;
+            --code-text: #374151;
+            --disabled-opacity: 0.5;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not(.light) {
+                --bg-primary: #111827;
+                --bg-secondary: #1f2937;
+                --bg-tertiary: #374151;
+                --text-primary: #f9fafb;
+                --text-secondary: #e5e7eb;
+                --text-muted: #9ca3af;
+                --border-color: #374151;
+                --border-hover: #4b5563;
+                --card-shadow: 0 1px 3px rgba(0,0,0,0.3);
+                --card-shadow-hover: 0 10px 25px -5px rgba(0,0,0,0.4);
+                --accent: #fbbf24;
+                --accent-hover: #f59e0b;
+                --accent-bg: #78350f;
+                --accent-text: #fef3c7;
+                --green-bg: #064e3b;
+                --green-text: #a7f3d0;
+                --red-bg: #7f1d1d;
+                --red-text: #fca5a5;
+                --yellow-bg: #78350f;
+                --yellow-text: #fde68a;
+                --code-bg: #1f2937;
+                --code-text: #e5e7eb;
+                --disabled-opacity: 0.6;
+            }
+        }
+
+        .light {
+            --bg-primary: #f9fafb;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f3f4f6;
+            --text-primary: #111827;
+            --text-secondary: #374151;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+            --border-hover: #d1d5db;
+            --card-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            --card-shadow-hover: 0 10px 25px -5px rgba(0,0,0,0.1);
+            --accent: #f59e0b;
+            --accent-hover: #d97706;
+            --accent-bg: #fef7ee;
+            --accent-text: #78350f;
+            --green-bg: #ecfdf5;
+            --green-text: #065f46;
+            --red-bg: #fef2f2;
+            --red-text: #991b1b;
+            --yellow-bg: #fffbeb;
+            --yellow-text: #92400e;
+            --code-bg: #f3f4f6;
+            --code-text: #374151;
+            --disabled-opacity: 0.5;
+        }
+
+        .dark {
+            --bg-primary: #111827;
+            --bg-secondary: #1f2937;
+            --bg-tertiary: #374151;
+            --text-primary: #f9fafb;
+            --text-secondary: #e5e7eb;
+            --text-muted: #9ca3af;
+            --border-color: #374151;
+            --border-hover: #4b5563;
+            --card-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            --card-shadow-hover: 0 10px 25px -5px rgba(0,0,0,0.4);
+            --accent: #fbbf24;
+            --accent-hover: #f59e0b;
+            --accent-bg: #78350f;
+            --accent-text: #fef3c7;
+            --green-bg: #064e3b;
+            --green-text: #a7f3d0;
+            --red-bg: #7f1d1d;
+            --red-text: #fca5a5;
+            --yellow-bg: #78350f;
+            --yellow-text: #fde68a;
+            --code-bg: #1f2937;
+            --code-text: #e5e7eb;
+            --disabled-opacity: 0.6;
+        }
+
         .metric-card { transition: transform 0.2s, box-shadow 0.2s; }
-        .metric-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+        .metric-card:hover { transform: translateY(-2px); box-shadow: var(--card-shadow-hover); }
         .toggle-switch { position: relative; width: 48px; height: 28px; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 28px; }
-        .toggle-slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        input:checked + .toggle-slider { background-color: #f59e0b; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border-color); transition: .3s; border-radius: 28px; }
+        .toggle-slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 3px; bottom: 3px; background-color: var(--bg-secondary); transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        input:checked + .toggle-slider { background-color: var(--accent); }
         input:checked + .toggle-slider:before { transform: translateX(20px); }
         .status-indicator { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
         .status-healthy { background-color: #10b981; box-shadow: 0 0 8px #10b981; }
         .status-warning { background-color: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
         .status-danger { background-color: #ef4444; box-shadow: 0 0 8px #ef4444; }
-        .slider-container input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #e5e7eb; outline: none; }
-        .slider-container input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #f59e0b; cursor: pointer; transition: transform 0.2s; }
+
+        .theme-toggle { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0.5rem; cursor: pointer; transition: all 0.2s; }
+        .theme-toggle:hover { background: var(--bg-tertiary); border-color: var(--border-hover); }
+        .theme-toggle:focus { outline: none; ring: 2px; ring-offset: 2px; ring-color: var(--accent); }
+        .slider-container input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 3px; background: var(--border-color); outline: none; }
+        .slider-container input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; transition: transform 0.2s; }
         .slider-container input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
-        .slider-container input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #f59e0b; cursor: pointer; border: none; }
-        .section-card { background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1.5rem; }
+        .slider-container input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; border: none; }
+        .section-card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 0.75rem; padding: 1.5rem; }
         .control-group { @apply space-y-4; }
-        .control-group.disabled { opacity: 0.5; pointer-events: none; }
+        .control-group.disabled { opacity: var(--disabled-opacity); pointer-events: none; }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen font-sans antialiased">
+<body class="min-h-screen font-sans antialiased" style="background: var(--bg-primary); color: var(--text-primary);">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Header -->
         <header class="mb-8">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Chaos Agent Dashboard</h1>
-                    <p class="text-gray-600 mt-1">Zero-code JVM Chaos Engineering for Spring Cloud</p>
+                    <h1 class="text-3xl font-bold" style="color: var(--text-primary);">Chaos Agent Dashboard</h1>
+                    <p class="mt-1" style="color: var(--text-muted);">Zero-code JVM Chaos Engineering for Spring Cloud</p>
                 </div>
                 <div class="flex items-center gap-4">
-                    <div class="flex items-center gap-2 px-3 py-1 bg-green-50 rounded-full">
+                    <div style="background: var(--green-bg); border-radius: 9999px; padding: 0.375rem 0.75rem;">
                         <span id="statusDot" class="status-indicator status-healthy"></span>
-                        <span id="statusText" class="text-sm font-medium text-green-700">Connected</span>
+                        <span id="statusText" class="text-sm font-medium" style="color: var(--green-text);">Connected</span>
                     </div>
+                    <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme" title="Toggle dark/light mode">
+                        <svg id="themeIconSun" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--text-secondary);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        <svg id="themeIconMoon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--text-secondary);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                    </button>
                 </div>
             </div>
         </header>
 
         <!-- JVM Telemetry -->
         <section class="mb-8">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <svg class="w-5 h-5 text-chaos-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            <h2 class="text-lg font-semibold mb-4 flex items-center gap-2" style="color: var(--text-primary);">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--accent);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                 JVM Telemetry
             </h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="telemetryGrid">
-                <div class="metric-card bg-white rounded-lg p-5 border border-gray-200">
-                    <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Java Version</div>
-                    <div id="jvmVersion" class="mt-1 text-2xl font-bold text-gray-900">-</div>
+                <div class="metric-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.25rem;">
+                    <div class="text-xs font-medium uppercase tracking-wider" style="color: var(--text-muted);">Java Version</div>
+                    <div id="jvmVersion" class="mt-1 text-2xl font-bold" style="color: var(--text-primary);">-</div>
                 </div>
-                <div class="metric-card bg-white rounded-lg p-5 border border-gray-200">
-                    <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Heap Used</div>
-                    <div id="heapUsed" class="mt-1 text-2xl font-bold text-gray-900">-</div>
-                    <div class="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div id="heapBar" class="h-full bg-chaos-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+                <div class="metric-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.25rem;">
+                    <div class="text-xs font-medium uppercase tracking-wider" style="color: var(--text-muted);">Heap Used</div>
+                    <div id="heapUsed" class="mt-1 text-2xl font-bold" style="color: var(--text-primary);">-</div>
+                    <div class="mt-2 h-2 rounded-full overflow-hidden" style="background: var(--bg-tertiary);">
+                        <div id="heapBar" class="h-full rounded-full transition-all duration-300" style="width: 0%; background: var(--accent);"></div>
                     </div>
                 </div>
-                <div class="metric-card bg-white rounded-lg p-5 border border-gray-200">
-                    <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Threads</div>
-                    <div id="threadCount" class="mt-1 text-2xl font-bold text-gray-900">-</div>
-                    <div class="text-xs text-gray-500 mt-1">Peak: <span id="peakThreads">-</span></div>
+                <div class="metric-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.25rem;">
+                    <div class="text-xs font-medium uppercase tracking-wider" style="color: var(--text-muted);">Threads</div>
+                    <div id="threadCount" class="mt-1 text-2xl font-bold" style="color: var(--text-primary);">-</div>
+                    <div class="text-xs mt-1" style="color: var(--text-muted);">Peak: <span id="peakThreads">-</span></div>
                 </div>
-                <div class="metric-card bg-white rounded-lg p-5 border border-gray-200">
-                    <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Agent Port</div>
-                    <div id="agentPort" class="mt-1 text-2xl font-bold text-gray-900">-</div>
+                <div class="metric-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.25rem;">
+                    <div class="text-xs font-medium uppercase tracking-wider" style="color: var(--text-muted);">Agent Port</div>
+                    <div id="agentPort" class="mt-1 text-2xl font-bold" style="color: var(--text-primary);">-</div>
                 </div>
             </div>
         </section>
 
         <!-- Network Fault Injection (Phase 2) -->
         <section class="mb-8">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <svg class="w-5 h-5 text-chaos-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-                Network Fault Injection <span class="text-xs bg-chaos-100 text-chaos-700 px-2 py-0.5 rounded">Phase 2</span>
+            <h2 class="text-lg font-semibold mb-4 flex items-center gap-2" style="color: var(--text-primary);">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--accent);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                Network Fault Injection <span class="text-xs px-2 py-0.5 rounded" style="background: var(--accent-bg); color: var(--accent-text);">Phase 2</span>
             </h2>
             <div class="section-card">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <!-- Latency Injection -->
                     <div class="control-group" id="latencyGroup">
                         <div class="flex items-center justify-between">
-                            <label class="font-medium text-gray-900">Latency Injection</label>
+                            <label class="font-medium" style="color: var(--text-primary);">Latency Injection</label>
                             <label class="toggle-switch">
                                 <input type="checkbox" id="latencyEnabled" onchange="updateConfig()">
                                 <span class="toggle-slider"></span>
@@ -112,19 +226,19 @@
                         </div>
                         <div id="latencyControls" class="space-y-4 disabled">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Delay: <span id="latencyValue">0</span> ms</label>
+                                <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">Delay: <span id="latencyValue">0</span> ms</label>
                                 <div class="slider-container">
                                     <input type="range" id="latencyMs" min="0" max="10000" step="100" value="0" oninput="updateLatencyDisplay(); updateConfig()">
                                 </div>
                             </div>
-                            <p class="text-xs text-gray-500">Applies to RestTemplate, OpenFeign, WebClient outbound calls</p>
+                            <p class="text-xs" style="color: var(--text-muted);">Applies to RestTemplate, OpenFeign, WebClient outbound calls</p>
                         </div>
                     </div>
 
                     <!-- Exception Injection -->
-                    <div class="control-group border-l border-gray-200 lg:border-l lg:pl-6" id="exceptionGroup">
+                    <div class="control-group" id="exceptionGroup" style="border-left: 1px solid var(--border-color); padding-left: 1.5rem;">
                         <div class="flex items-center justify-between">
-                            <label class="font-medium text-gray-900">Exception Injection</label>
+                            <label class="font-medium" style="color: var(--text-primary);">Exception Injection</label>
                             <label class="toggle-switch">
                                 <input type="checkbox" id="exceptionEnabled" onchange="updateConfig()">
                                 <span class="toggle-slider"></span>
@@ -132,8 +246,8 @@
                         </div>
                         <div id="exceptionControls" class="space-y-4 disabled">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Exception Type</label>
-                                <select id="exceptionType" class="w-full md:w-64 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-chaos-500 focus:border-chaos-500" onchange="updateConfig()">
+                                <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">Exception Type</label>
+                                <select id="exceptionType" class="w-full md:w-64 px-3 py-2 rounded-lg" onchange="updateConfig()" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary);">
                                     <option value="SocketTimeoutException">java.net.SocketTimeoutException</option>
                                     <option value="ConnectException">java.net.ConnectException</option>
                                     <option value="Http503">HTTP 503 Service Unavailable</option>
@@ -141,7 +255,7 @@
                                     <option value="Http504">HTTP 504 Gateway Timeout</option>
                                 </select>
                             </div>
-                            <p class="text-xs text-gray-500">Throws selected exception instead of making network call</p>
+                            <p class="text-xs" style="color: var(--text-muted);">Throws selected exception instead of making network call</p>
                         </div>
                     </div>
                 </div>
@@ -150,50 +264,50 @@
 
         <!-- Real-time Metrics (Phase 4) -->
         <section class="mb-8">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <svg class="w-5 h-5 text-chaos-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                Real-time Metrics <span class="text-xs bg-chaos-100 text-chaos-700 px-2 py-0.5 rounded">Phase 4</span>
+            <h2 class="text-lg font-semibold mb-4 flex items-center gap-2" style="color: var(--text-primary);">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--accent);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                Real-time Metrics <span class="text-xs px-2 py-0.5 rounded" style="background: var(--accent-bg); color: var(--accent-text);">Phase 4</span>
             </h2>
             <div class="section-card">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="control-group">
-                        <label class="font-medium text-gray-900">SSE Event Stream</label>
+                        <label class="font-medium" style="color: var(--text-primary);">SSE Event Stream</label>
                         <div class="flex items-center gap-4 mt-2">
                             <label class="toggle-switch">
                                 <input type="checkbox" id="sseEnabled" onchange="toggleSSE()">
                                 <span class="toggle-slider"></span>
                             </label>
-                            <span id="sseStatus" class="text-sm text-gray-500">Disconnected</span>
+                            <span id="sseStatus" class="text-sm" style="color: var(--text-muted);">Disconnected</span>
                         </div>
-                        <p class="text-xs text-gray-500 mt-1">Server-Sent Events for live metrics updates (1s interval)</p>
+                        <p class="text-xs mt-1" style="color: var(--text-muted);">Server-Sent Events for live metrics updates (1s interval)</p>
                     </div>
-                    <div class="control-group border-l border-gray-200 lg:border-l lg:pl-6">
-                        <label class="font-medium text-gray-900">Event Log</label>
-                        <div id="eventLog" class="mt-2 h-32 bg-gray-50 rounded-lg p-3 font-mono text-xs text-gray-700 overflow-y-auto border border-gray-200" style="font-family: monospace;">
-                            <div class="text-gray-400">Waiting for SSE connection...</div>
+                    <div class="control-group" style="border-left: 1px solid var(--border-color); padding-left: 1.5rem;">
+                        <label class="font-medium" style="color: var(--text-primary);">Event Log</label>
+                        <div id="eventLog" class="mt-2 h-32 rounded-lg p-3 font-mono text-xs overflow-y-auto border" style="background: var(--code-bg); color: var(--code-text); border-color: var(--border-color); font-family: monospace;">
+                            <div style="color: var(--text-muted);">Waiting for SSE connection...</div>
                         </div>
                     </div>
                 </div>
                 <div class="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-4">
-                    <div class="metric-card bg-white rounded-lg p-4 border border-gray-200">
-                        <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Mem Retained (Phase 3)</div>
-                        <div id="memRetainedMb" class="mt-1 text-2xl font-bold text-gray-900">0 MB</div>
-                        <div class="text-xs text-gray-500">Entries: <span id="memEntries">0</span></div>
+                    <div class="metric-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1rem;">
+                        <div class="text-xs font-medium uppercase tracking-wider" style="color: var(--text-muted);">Mem Retained (Phase 3)</div>
+                        <div id="memRetainedMb" class="mt-1 text-2xl font-bold" style="color: var(--text-primary);">0 MB</div>
+                        <div class="text-xs" style="color: var(--text-muted);">Entries: <span id="memEntries">0</span></div>
                     </div>
-                    <div class="metric-card bg-white rounded-lg p-4 border border-gray-200">
-                        <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">CPU Busy-Spin (Phase 3)</div>
-                        <div id="cpuBusyMs" class="mt-1 text-2xl font-bold text-gray-900">0 ms</div>
-                        <div class="text-xs text-gray-500">Count: <span id="cpuBusyCount">0</span></div>
+                    <div class="metric-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1rem;">
+                        <div class="text-xs font-medium uppercase tracking-wider" style="color: var(--text-muted);">CPU Busy-Spin (Phase 3)</div>
+                        <div id="cpuBusyMs" class="mt-1 text-2xl font-bold" style="color: var(--text-primary);">0 ms</div>
+                        <div class="text-xs" style="color: var(--text-muted);">Count: <span id="cpuBusyCount">0</span></div>
                     </div>
-                    <div class="metric-card bg-white rounded-lg p-4 border border-gray-200">
-                        <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">SSE Events</div>
-                        <div id="sseEventCount" class="mt-1 text-2xl font-bold text-gray-900">0</div>
-                        <div class="text-xs text-gray-500">Sequence: <span id="sseSeq">-</span></div>
+                    <div class="metric-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1rem;">
+                        <div class="text-xs font-medium uppercase tracking-wider" style="color: var(--text-muted);">SSE Events</div>
+                        <div id="sseEventCount" class="mt-1 text-2xl font-bold" style="color: var(--text-primary);">0</div>
+                        <div class="text-xs" style="color: var(--text-muted);">Sequence: <span id="sseSeq">-</span></div>
                     </div>
-                    <div class="metric-card bg-white rounded-lg p-4 border border-gray-200">
-                        <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Latency (live)</div>
-                        <div id="liveLatency" class="mt-1 text-2xl font-bold text-gray-900">-</div>
-                        <div class="text-xs text-gray-500">Last update: <span id="lastUpdate">-</span></div>
+                    <div class="metric-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1rem;">
+                        <div class="text-xs font-medium uppercase tracking-wider" style="color: var(--text-muted);">Latency (live)</div>
+                        <div id="liveLatency" class="mt-1 text-2xl font-bold" style="color: var(--text-primary);">-</div>
+                        <div class="text-xs" style="color: var(--text-muted);">Last update: <span id="lastUpdate">-</span></div>
                     </div>
                 </div>
             </div>
@@ -201,26 +315,26 @@
 
         <!-- Profile Management (Phase 4) -->
         <section class="mb-8">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <svg class="w-5 h-5 text-chaos-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                Profile Management <span class="text-xs bg-chaos-100 text-chaos-700 px-2 py-0.5 rounded">Phase 4</span>
+            <h2 class="text-lg font-semibold mb-4 flex items-center gap-2" style="color: var(--text-primary);">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--accent);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Profile Management <span class="text-xs px-2 py-0.5 rounded" style="background: var(--accent-bg); color: var(--accent-text);">Phase 4</span>
             </h2>
             <div class="section-card">
                 <div class="flex flex-col sm:flex-row gap-4">
-                    <button onclick="exportProfile()" class="px-4 py-2 bg-chaos-600 text-white rounded-lg hover:bg-chaos-700 transition-colors flex items-center gap-2">
+                    <button onclick="exportProfile()" class="px-4 py-2 rounded-lg transition-colors flex items-center gap-2" style="background: var(--accent); color: white;">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                         Export Profile (JSON)
                     </button>
                     <div class="flex items-center gap-2 flex-1">
                         <input type="file" id="profileImport" accept=".json" class="hidden" onchange="importProfile(event)">
-                        <button onclick="document.getElementById('profileImport').click()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2">
+                        <button onclick="document.getElementById('profileImport').click()" class="px-4 py-2 rounded-lg transition-colors flex items-center gap-2" style="background: var(--bg-tertiary); color: var(--text-primary);">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                             Import Profile
                         </button>
-                        <span id="importStatus" class="text-sm text-gray-500"></span>
+                        <span id="importStatus" class="text-sm" style="color: var(--text-muted);"></span>
                     </div>
                 </div>
-                <p class="text-xs text-gray-500 mt-2">Save/load complete chaos configurations including all Phase 2 & 3 settings</p>
+                <p class="text-xs mt-2" style="color: var(--text-muted);">Save/load complete chaos configurations including all Phase 2 & 3 settings</p>
             </div>
         </section>
 
@@ -330,8 +444,8 @@
         </section>
 
         <!-- Footer -->
-        <footer class="text-center text-sm text-gray-500 border-t border-gray-200 pt-6">
-            <p>Chaos Agent v0.1.0-SNAPSHOT | <a href="https://github.com/haipeng-guo-dev/my-chaos-agent" class="text-chaos-600 hover:underline" target="_blank">GitHub</a> | MIT License</p>
+        <footer class="text-center text-sm pt-6" style="border-top: 1px solid var(--border-color); color: var(--text-muted);">
+            <p>Chaos Agent v0.1.0-SNAPSHOT | <a href="https://github.com/haipeng-guo-dev/my-chaos-agent" target="_blank" style="color: var(--accent);">GitHub</a> | MIT License</p>
         </footer>
     </div>
 
@@ -613,7 +727,38 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
         }
 
+        // Theme toggle
+        function applyTheme(theme) {
+            document.documentElement.classList.remove('light', 'dark');
+            document.documentElement.classList.add(theme);
+            localStorage.setItem('theme', theme);
+            const sunIcon = document.getElementById('themeIconSun');
+            const moonIcon = document.getElementById('themeIconMoon');
+            if (theme === 'dark') {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            } else {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            }
+        }
+
+        function initTheme() {
+            const saved = localStorage.getItem('theme');
+            if (saved) {
+                applyTheme(saved);
+            } else {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                applyTheme(prefersDark ? 'dark' : 'light');
+            }
+            document.getElementById('themeToggle').addEventListener('click', () => {
+                const current = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+                applyTheme(current === 'dark' ? 'light' : 'dark');
+            });
+        }
+
         // Initialize
+        initTheme();
         fetchStatus();
         fetchConfig();
         pollInterval = setInterval(fetchStatus, 3000);
