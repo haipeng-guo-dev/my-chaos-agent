@@ -104,6 +104,7 @@ public class ChaosAgent {
             server.createContext("/api/config", exchange -> serveConfig(exchange));
             server.createContext("/api/metrics/stream", exchange -> serveMetricsStream(exchange));
             server.createContext("/api/profile", exchange -> serveProfile(exchange));
+            server.createContext("/static", exchange -> serveStaticResource(exchange));
 
             server.start();
             serverRef.set(server);
@@ -425,6 +426,48 @@ public class ChaosAgent {
         String pattern = "\"" + key + "\"\\s*:\\s*\"([^\"]*)\"";
         java.util.regex.Matcher m = java.util.regex.Pattern.compile(pattern).matcher(json);
         return m.find() ? m.group(1) : defaultValue;
+    }
+
+    private static void serveStaticResource(com.sun.net.httpserver.HttpExchange exchange) throws IOException {
+        if (!"GET".equals(exchange.getRequestMethod())) {
+            exchange.sendResponseHeaders(405, -1);
+            return;
+        }
+        String path = exchange.getRequestURI().getPath();
+        // /static/... -> remove /static prefix
+        String resourcePath = path.substring("/static".length());
+        if (resourcePath.isEmpty() || resourcePath.equals("/")) {
+            exchange.sendResponseHeaders(404, -1);
+            return;
+        }
+        if (resourcePath.startsWith("/")) resourcePath = resourcePath.substring(1);
+
+        try (var is = ChaosAgent.class.getClassLoader().getResourceAsStream(resourcePath)) {
+            if (is == null) {
+                exchange.sendResponseHeaders(404, -1);
+                return;
+            }
+            byte[] content = is.readAllBytes();
+            String contentType = getContentType(resourcePath);
+            exchange.getResponseHeaders().set("Content-Type", contentType);
+            exchange.getResponseHeaders().set("Cache-Control", "public, max-age=3600");
+            exchange.sendResponseHeaders(200, content.length);
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(content);
+            }
+        } catch (Exception e) {
+            exchange.sendResponseHeaders(404, -1);
+        }
+    }
+
+    private static String getContentType(String path) {
+        if (path.endsWith(".png")) return "image/png";
+        if (path.endsWith(".jpg") || path.endsWith(".jpeg")) return "image/jpeg";
+        if (path.endsWith(".svg")) return "image/svg+xml";
+        if (path.endsWith(".css")) return "text/css";
+        if (path.endsWith(".js")) return "application/javascript";
+        if (path.endsWith(".html")) return "text/html";
+        return "application/octet-stream";
     }
 
     private static String loadResource(String name) {
