@@ -224,6 +224,30 @@ Custom port: `java -javaagent:agent-core.jar=port=9090 -jar app.jar`
 
 ---
 
+## 📋 Understanding Agent Logs
+
+When running with `-javaagent`, you may see `[Byte Buddy]` diagnostic lines:
+
+```
+[Byte Buddy] IGNORE sun.nio.ch.ExtendedSocketOption$1 [null, module java.base, Thread[#27,idle-timeout-task,5,main], loaded=false]
+```
+
+**Field reference:**
+
+| Field | Meaning |
+|-------|---------|
+| **Stage** | `DISCOVERY` = class scanned, `IGNORE` = not matched by agent, `COMPLETE` = transformation done |
+| **Class** | Fully qualified name being examined |
+| **Module** | JPMS module (`null` = classpath/unnamed) |
+| **Thread** | Thread that triggered the scan (often Netty/selector idle-timeout) |
+| **loaded** | `false` = class not yet loaded (normal for pre-instrumentation) |
+
+**Most lines are `IGNORE`** — Byte Buddy scans all loaded classes but the agent only transforms your target packages (RestTemplate, WebClient, Feign). This is expected noise.
+
+**To reduce verbosity**, the agent uses `Listener.StreamWriting.toSystemOut().withTransformationsOnly()` — only actual transformations are logged.
+
+---
+
 ## 🧪 Sample App Endpoints
 
 ```
