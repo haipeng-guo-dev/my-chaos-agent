@@ -87,7 +87,7 @@ class ShadingVerificationTest {
                     .collect(Collectors.toSet());
 
             assertThat(entries).contains("com/chaosagent/agent/ChaosAgent.class");
-            assertThat(entries).contains("com/chaosagent/agent/ChaosConfig.class");
+            assertThat(entries).contains("com/chaosagent/agent/ChaosAgent$ChaosConfig.class");
             assertThat(entries).contains("com/chaosagent/agent/NetworkFaultInterceptor.class");
             assertThat(entries).contains("com/chaosagent/agent/CarrierPinningInterceptor.class");
             assertThat(entries).contains("com/chaosagent/agent/MemoryPressureInterceptor.class");

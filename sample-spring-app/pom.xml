@@ -16,6 +16,7 @@
 
     <properties>
         <spring-boot.version>3.2.5</spring-boot.version>
+        <maven.compiler.parameters>true</maven.compiler.parameters>
     </properties>
 
     <dependencyManagement>

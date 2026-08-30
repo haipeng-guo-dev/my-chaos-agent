@@ -225,13 +225,17 @@ class ChaosAgentHttpIntegrationTest {
     void sseEndpointAcceptsConnection() throws Exception {
         var request = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + "/api/metrics/stream"))
+                .timeout(Duration.ofSeconds(2))
                 .GET()
                 .build();
 
-        var response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+        // Use a body handler that doesn't wait for completion
+        var response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofLines());
 
         // SSE endpoint returns 200 and starts streaming
         assertThat(response.statusCode()).isEqualTo(200);
+        // Close the stream immediately
+        response.body().close();
     }
 
     @Test
