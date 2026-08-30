@@ -201,7 +201,7 @@ class ChaosAgentHttpIntegrationTest {
         var response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
 
         assertThat(response.statusCode()).isEqualTo(200);
-        assertThat(response.headers().firstValue("Content-Type")).hasValueContaining("text/html");
+        assertThat(response.headers().firstValue("Content-Type")).hasValueSatisfying(v -> assertThat(v).contains("text/html"));
         assertThat(response.body()).contains("Chaos Agent Dashboard");
         assertThat(response.body()).contains("my-chaos-agent.png");
     }
@@ -229,8 +229,8 @@ class ChaosAgentHttpIntegrationTest {
         var response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
 
         assertThat(response.statusCode()).isEqualTo(200);
-        assertThat(response.headers().firstValue("Content-Type")).hasValueContaining("application/json");
-        assertThat(response.headers().firstValue("Content-Disposition")).hasValueContaining("chaos-profile.json");
+        assertThat(response.headers().firstValue("Content-Type")).hasValueSatisfying(v -> assertThat(v).contains("application/json"));
+        assertThat(response.headers().firstValue("Content-Disposition")).hasValueSatisfying(v -> assertThat(v).contains("chaos-profile.json"));
         assertThat(response.body()).contains("\"version\":1");
         assertThat(response.body()).contains("\"config\"");
     }
