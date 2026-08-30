@@ -9,33 +9,99 @@
 
 **Flip a switch. Break your app. Learn how it survives.**
 
-my-chaos-agent injects real chaos into your running JVM — latency, exceptions, memory pressure, CPU saturation, virtual-thread pinning — with **zero code changes and zero restarts**.
+my-chaos-agent is a Java agent that lets you break your running JVM application on purpose — injecting latency, exceptions, memory pressure, CPU saturation, and virtual-thread pinning — with **zero code changes and zero restarts**. Attach it via `-javaagent` or at runtime, then flip switches in the embedded web dashboard (`http://localhost:8090`) to simulate real-world failures and watch your app's resilience in real time.
 
-![Dashboard](docs/dashboard.png)
+**What is chaos engineering?** It's the practice of deliberately injecting failures into your system to verify it handles them gracefully — before real failures happen in production. Think of it like a stress test for your code's error handling: instead of hoping your retry logic, circuit breakers, and timeouts work, you *prove* they work by triggering the exact conditions they're designed to handle.
 
----
-
-## What can you do with it?
-
-| Scenario | Without agent | With agent |
-|----------|---------------|------------|
-| **🐌 Slow down external calls** | `POST /external` → 200 in 200ms | 200 in **2.2s** (2s injected) |
-| **💥 Fail calls on demand** | `POST /external` → 200 OK | **HTTP 503** / SocketTimeout / ConnectException |
-| **🧠 Simulate a memory leak** | Heap flat | Heap grows until you switch memory pressure off |
-| **🔥 Saturate CPU** | Quiet | Busy-spin on carrier threads — CPU throttles like a noisy neighbor |
-| **🧵 Pin virtual threads** | Full VT throughput | `synchronized` blocks pin carriers — watch your app crawl |
-
-All of it via a **web dashboard** (`http://localhost:8090`) or a **REST API** — no code to write, no classpath pollution, no restart.
+Built for Java 21+ and Spring Boot (RestTemplate, WebClient, Feign), it's the fastest way to find bottlenecks before production does.
 
 ---
 
-## How it works
+## 🎯 Why Use This? (When & Why)
 
-1. **Attach** — start your app with one `-javaagent` flag (or attach to a running JVM via `agentmain`)
-2. **Toggle** — open the embedded dashboard and flip switches / drag sliders
-3. **Watch** — live SSE metrics show heap, threads, and every injected fault
+### What Is This Tool For?
 
-Byte Buddy intercepts `RestTemplate`, `WebClient`, and `Feign` outbound calls — you don't touch a single line of your application.
+**my-chaos-agent** brings chaos engineering to everyday JVM development. Chaos engineering means deliberately injecting failures (slow networks, crashed dependencies, memory leaks, CPU contention) into your application to verify it survives them. Instead of discovering breaking points during an outage, you discover them on your laptop or in CI.
+
+**Typical use cases:**
+- **Resilience validation** — Prove your timeouts, retries, circuit breakers, and fallbacks actually work
+- **Performance regression detection** — Catch latency regressions before they hit staging
+- **Virtual thread migration safety** — Verify your code doesn't pin carrier threads when moving to Project Loom virtual threads
+- **Game-day rehearsals** — Run repeatable failure scenarios with your team
+- **Local debugging** — Reproduce "works on my machine" issues by simulating production conditions
+
+### What Projects Does It Support?
+
+| Architecture | Support Level | Notes |
+|--------------|---------------|-------|
+| **Spring Boot (2.x/3.x)** | ✅ First-class | RestTemplate, WebClient, OpenFeign interceptors built in |
+| **Plain Java / Micronaut / Quarkus** | ✅ Works | Any JVM app using `java.net.http`, `HttpClient`, or custom HTTP clients |
+| **Virtual Thread workloads (Java 21+)** | ✅ Unique differentiator | Only tool that simulates `synchronized`/JNI carrier pinning |
+| **Monoliths** | ✅ Full support | Single JVM, all stressors work |
+| **Distributed systems / Microservices** | ✅ Full support | Attach to each service independently; correlate via exported profiles |
+| **Kubernetes / Containerized** | ✅ Works | Add `-javaagent` to container startup; dashboard via port-forward |
+
+**Requirements:** Java 21+, Maven 3.9+ for building. The agent shades Byte Buddy — zero classpath pollution, no dependency conflicts.
+
+### What Type of Testing Is This Fit For?
+
+| Testing Phase | How my-chaos-agent Fits |
+|---------------|-------------------------|
+| **Local development** | Attach to running app, toggle latency/exceptions while coding — instant feedback loop |
+| **Integration tests** | Start agent in test container, inject faults programmatically via REST API, assert behavior |
+| **Performance/load testing** | Add steady latency/CPU pressure to simulate noisy neighbors; measure throughput degradation |
+| **Chaos engineering / Game days** | Export/import JSON profiles for repeatable, shareable failure scenarios across the team |
+| **Pre-release validation** | Run a "chaos suite" in CI: 2s latency + 5% exceptions + pinning — verify SLA compliance |
+| **Incident reproduction** | Recreate production incident conditions (e.g., "database was slow for 3 min") locally |
+
+### What Is the Practical Output? What Do You Actually See?
+
+**1. Embedded Web Dashboard (`http://localhost:8090`)**
+- Toggle switches for each stressor (latency, exceptions, pinning, memory, CPU)
+- Sliders for intensity (0–10s latency, 0–100% CPU, 0–500MB memory)
+- Live SSE metrics stream: heap usage, thread counts (platform/virtual), fault counters
+- One-click profile export/import (JSON)
+
+**2. REST API (for automation/CI)**
+- `GET /api/status` — JVM telemetry (PID, version, memory, thread breakdown)
+- `POST /api/config` — Apply chaos config programmatically
+- `GET /api/metrics/stream` — SSE stream for real-time monitoring
+- `GET/POST /api/profile` — Export/import full experiment setups
+
+**3. Concrete Failure Signals You'll Observe in Your App**
+| Stressor | What You'll See |
+|----------|-----------------|
+| Latency | `RestTemplate`/`WebClient`/`Feign` calls take N ms longer; timeouts fire |
+| Exceptions | `SocketTimeoutException`, `ConnectException`, HTTP 503/500/504 on outbound calls |
+| Pinning | Virtual threads stall; `jcmd <pid> Thread.print` shows pinned carriers; throughput drops |
+| Memory | Heap grows steadily; GC frequency increases; eventual OOM if uncapped |
+| CPU | Carrier threads busy-spin; `top` shows high CPU; throughput drops under load |
+
+### How Should You Act on the Findings?
+
+**Step 1: Start Small, Observe Baseline**
+- Enable one stressor at low intensity (e.g., 200ms latency, 10% pinning probability)
+- Watch the SSE metrics stream and your app's own metrics (Micrometer, Actuator, Datadog, etc.)
+- Note: latency injection targets **outbound calls only** — your inbound endpoints stay responsive
+
+**Step 2: Verify Your Resilience Patterns**
+| If You See... | Check This... | Fix If Needed |
+|---------------|---------------|---------------|
+| Requests hang indefinitely | Timeout configuration on HTTP clients | Set `connectTimeout` / `readTimeout` |
+| Errors bubble up as 500 | Circuit breaker / fallback logic | Add `@CircuitBreaker`, fallback methods |
+| Thread pool exhaustion | Pool sizing vs. expected latency | Increase pool size or add bulkheads |
+| Virtual thread throughput collapses | `synchronized` in hot paths / library code | Replace with `ReentrantLock` or `@ChaosPin`-aware code |
+| GC runs constantly / OOM | Memory pressure handling | Add cache eviction, streaming, backpressure |
+
+**Step 3: Export a Profile for Regression Testing**
+- Once you find a breaking point, click **Export Profile** in the dashboard
+- Commit the JSON to your repo; run it in CI via `curl -X POST /api/profile`
+- Now every build validates that specific failure scenario
+
+**Step 4: Iterate Toward Production Parity**
+- Gradually increase intensity to match production SLAs (e.g., "p99 latency < 500ms under 2s dependency latency")
+- Test combinations: latency + exceptions + pinning = realistic partial degradation
+- Use the dashboard's "Emergency Stop" (disable all) to recover instantly
 
 ---
 
