@@ -123,5 +123,14 @@
                 </executions>
             </plugin>
         </plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <argLine>--add-opens=java.base/com.sun.net.httpserver=ALL-UNNAMED --add-exports=java.base/com.sun.net.httpserver=ALL-UNNAMED</argLine>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 </project>
