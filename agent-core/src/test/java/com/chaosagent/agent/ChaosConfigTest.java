@@ -1,5 +1,7 @@
 package com.chaosagent.agent;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Modifier;
@@ -8,9 +10,29 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ChaosConfigTest {
 
+    @BeforeEach
+    void resetConfig() {
+        // Reset to defaults before each test
+        ChaosAgent.ChaosConfig.latencyMs = 0;
+        ChaosAgent.ChaosConfig.latencyEnabled = false;
+        ChaosAgent.ChaosConfig.exceptionEnabled = false;
+        ChaosAgent.ChaosConfig.exceptionType = "SocketTimeoutException";
+        ChaosAgent.ChaosConfig.pinningEnabled = false;
+        ChaosAgent.ChaosConfig.pinningProbability = 0.1;
+        ChaosAgent.ChaosConfig.memoryPressureEnabled = false;
+        ChaosAgent.ChaosConfig.memoryPressureMb = 100;
+        ChaosAgent.ChaosConfig.cpuBackpressureEnabled = false;
+        ChaosAgent.ChaosConfig.cpuBackpressureIntensity = 50;
+    }
+
+    @AfterEach
+    void resetConfigAfter() {
+        resetConfig();
+    }
+
     @Test
     void defaultValues() {
-        ChaosConfig config = new ChaosConfig();
+        ChaosAgent.ChaosConfig config = new ChaosAgent.ChaosConfig();
 
         // Phase 2: Network Fault Injection
         assertThat(config.latencyMs).isEqualTo(0);
@@ -30,32 +52,32 @@ class ChaosConfigTest {
     @Test
     void configFieldsAreVolatile() throws Exception {
         // Verify fields are volatile (thread-safe for concurrent access from HTTP handlers)
-        var latencyMsField = ChaosConfig.class.getDeclaredField("latencyMs");
-        var latencyEnabledField = ChaosConfig.class.getDeclaredField("latencyEnabled");
-        var exceptionEnabledField = ChaosConfig.class.getDeclaredField("exceptionEnabled");
-        var exceptionTypeField = ChaosConfig.class.getDeclaredField("exceptionType");
-        var pinningEnabledField = ChaosConfig.class.getDeclaredField("pinningEnabled");
-        var pinningProbabilityField = ChaosConfig.class.getDeclaredField("pinningProbability");
-        var memoryPressureEnabledField = ChaosConfig.class.getDeclaredField("memoryPressureEnabled");
-        var memoryPressureMbField = ChaosConfig.class.getDeclaredField("memoryPressureMb");
-        var cpuBackpressureEnabledField = ChaosConfig.class.getDeclaredField("cpuBackpressureEnabled");
-        var cpuBackpressureIntensityField = ChaosConfig.class.getDeclaredField("cpuBackpressureIntensity");
+        var latencyMsField = ChaosAgent.ChaosConfig.class.getDeclaredField("latencyMs");
+        var latencyEnabledField = ChaosAgent.ChaosConfig.class.getDeclaredField("latencyEnabled");
+        var exceptionEnabledField = ChaosAgent.ChaosConfig.class.getDeclaredField("exceptionEnabled");
+        var exceptionTypeField = ChaosAgent.ChaosConfig.class.getDeclaredField("exceptionType");
+        var pinningEnabledField = ChaosAgent.ChaosConfig.class.getDeclaredField("pinningEnabled");
+        var pinningProbabilityField = ChaosAgent.ChaosConfig.class.getDeclaredField("pinningProbability");
+        var memoryPressureEnabledField = ChaosAgent.ChaosConfig.class.getDeclaredField("memoryPressureEnabled");
+        var memoryPressureMbField = ChaosAgent.ChaosConfig.class.getDeclaredField("memoryPressureMb");
+        var cpuBackpressureEnabledField = ChaosAgent.ChaosConfig.class.getDeclaredField("cpuBackpressureEnabled");
+        var cpuBackpressureIntensityField = ChaosAgent.ChaosConfig.class.getDeclaredField("cpuBackpressureIntensity");
 
-        assertThat(latencyMsField.getModifiers()).contains(Modifier.VOLATILE);
-        assertThat(latencyEnabledField.getModifiers()).contains(Modifier.VOLATILE);
-        assertThat(exceptionEnabledField.getModifiers()).contains(Modifier.VOLATILE);
-        assertThat(exceptionTypeField.getModifiers()).contains(Modifier.VOLATILE);
-        assertThat(pinningEnabledField.getModifiers()).contains(Modifier.VOLATILE);
-        assertThat(pinningProbabilityField.getModifiers()).contains(Modifier.VOLATILE);
-        assertThat(memoryPressureEnabledField.getModifiers()).contains(Modifier.VOLATILE);
-        assertThat(memoryPressureMbField.getModifiers()).contains(Modifier.VOLATILE);
-        assertThat(cpuBackpressureEnabledField.getModifiers()).contains(Modifier.VOLATILE);
-        assertThat(cpuBackpressureIntensityField.getModifiers()).contains(Modifier.VOLATILE);
+        assertThat(latencyMsField.getModifiers() & Modifier.VOLATILE).isNotEqualTo(0);
+        assertThat(latencyEnabledField.getModifiers() & Modifier.VOLATILE).isNotEqualTo(0);
+        assertThat(exceptionEnabledField.getModifiers() & Modifier.VOLATILE).isNotEqualTo(0);
+        assertThat(exceptionTypeField.getModifiers() & Modifier.VOLATILE).isNotEqualTo(0);
+        assertThat(pinningEnabledField.getModifiers() & Modifier.VOLATILE).isNotEqualTo(0);
+        assertThat(pinningProbabilityField.getModifiers() & Modifier.VOLATILE).isNotEqualTo(0);
+        assertThat(memoryPressureEnabledField.getModifiers() & Modifier.VOLATILE).isNotEqualTo(0);
+        assertThat(memoryPressureMbField.getModifiers() & Modifier.VOLATILE).isNotEqualTo(0);
+        assertThat(cpuBackpressureEnabledField.getModifiers() & Modifier.VOLATILE).isNotEqualTo(0);
+        assertThat(cpuBackpressureIntensityField.getModifiers() & Modifier.VOLATILE).isNotEqualTo(0);
     }
 
     @Test
     void configCanBeMutated() {
-        ChaosConfig config = new ChaosConfig();
+        ChaosAgent.ChaosConfig config = new ChaosAgent.ChaosConfig();
 
         config.latencyMs = 5000;
         config.latencyEnabled = true;

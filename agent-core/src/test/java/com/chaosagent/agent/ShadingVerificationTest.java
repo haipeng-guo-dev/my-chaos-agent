@@ -102,18 +102,19 @@ class ShadingVerificationTest {
             targetDir = Path.of("agent-core/target");
         }
         
-        if (!Files.exists(targetDir)) {
+        final Path resolvedDir = targetDir;
+        if (!Files.exists(resolvedDir)) {
             // JAR not built yet - this test runs before package phase in CI
             // Return a path that will fail gracefully
-            return targetDir.resolve("agent-core-0.1.0-SNAPSHOT.jar");
+            return resolvedDir.resolve("agent-core-0.1.0-SNAPSHOT.jar");
         }
         
-        try (var stream = Files.list(targetDir)) {
+        try (var stream = Files.list(resolvedDir)) {
             return stream
                     .filter(p -> p.getFileName().toString().matches("agent-core-.*\\.jar"))
                     .filter(p -> !p.getFileName().toString().contains("sources") && !p.getFileName().toString().contains("javadoc"))
                     .findFirst()
-                    .orElseThrow(() -> new IllegalStateException("Agent JAR not found in " + targetDir.toAbsolutePath()));
+                    .orElseThrow(() -> new IllegalStateException("Agent JAR not found in " + resolvedDir.toAbsolutePath()));
         }
     }
 }
