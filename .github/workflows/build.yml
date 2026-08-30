@@ -1,0 +1,43 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn clean package -DskipTests --batch-mode
+
+      - name: Verify agent JAR exists
+        run: |
+          ls -la agent-core/target/agent-core-*.jar
+          ls -la sample-spring-app/target/sample-spring-app-*.jar
+
+      - name: Verify shaded agent JAR
+        run: |
+          JAR=$(find agent-core/target -name "agent-core-*.jar" | head -1)
+          echo "Testing $JAR"
+          # Verify manifest has Premain-Class
+          unzip -p "$JAR" META-INF/MANIFEST.MF | grep -i "Premain-Class"
+          # Verify Byte Buddy is shaded
+          unzip -l "$JAR" | grep -q "com/chaosagent/shaded/bytebuddy" && echo "Byte Buddy shaded ✓" || (echo "Byte Buddy NOT shaded ✗" && exit 1)
+
+      - name: Quick smoke test (compile only)
+        run: |
+          java -version
+          mvn compile --batch-mode -pl agent-core
+          mvn compile --batch-mode -pl sample-spring-app

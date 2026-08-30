@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chaos Agent Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        chaos: {
+                            50: '#fef7ee',
+                            100: '#fdedd6',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                            700: '#b45309',
+                            900: '#78350f',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .metric-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .metric-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+        .toggle-switch { position: relative; width: 48px; height: 28px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 28px; }
+        .toggle-slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        input:checked + .toggle-slider { background-color: #f59e0b; }
+        input:checked + .toggle-slider:before { transform: translateX(20px); }
+        .status-indicator { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .status-healthy { background-color: #10b981; box-shadow: 0 0 8px #10b981; }
+        .status-warning { background-color: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
+        .status-danger { background-color: #ef4444; box-shadow: 0 0 8px #ef4444; }
+        .slider-container input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #e5e7eb; outline: none; }
+        .slider-container input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #f59e0b; cursor: pointer; transition: transform 0.2s; }
+        .slider-container input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+        .slider-container input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #f59e0b; cursor: pointer; border: none; }
+        .section-card { background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1.5rem; }
+        .control-group { @apply space-y-4; }
+        .control-group.disabled { opacity: 0.5; pointer-events: none; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans antialiased">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header -->
+        <header class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Chaos Agent Dashboard</h1>
+                    <p class="text-gray-600 mt-1">Zero-code JVM Chaos Engineering for Spring Cloud</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2 px-3 py-1 bg-green-50 rounded-full">
+                        <span id="statusDot" class="status-indicator status-healthy"></span>
+                        <span id="statusText" class="text-sm font-medium text-green-700">Connected</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- JVM Telemetry -->
+        <section class="mb-8">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-chaos-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                JVM Telemetry
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="telemetryGrid">
+                <div class="metric-card bg-white rounded-lg p-5 border border-gray-200">
+                    <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Java Version</div>
+                    <div id="jvmVersion" class="mt-1 text-2xl font-bold text-gray-900">-</div>
+                </div>
+                <div class="metric-card bg-white rounded-lg p-5 border border-gray-200">
+                    <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Heap Used</div>
+                    <div id="heapUsed" class="mt-1 text-2xl font-bold text-gray-900">-</div>
+                    <div class="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div id="heapBar" class="h-full bg-chaos-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="metric-card bg-white rounded-lg p-5 border border-gray-200">
+                    <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Threads</div>
+                    <div id="threadCount" class="mt-1 text-2xl font-bold text-gray-900">-</div>
+                    <div class="text-xs text-gray-500 mt-1">Peak: <span id="peakThreads">-</span></div>
+                </div>
+                <div class="metric-card bg-white rounded-lg p-5 border border-gray-200">
+                    <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Agent Port</div>
+                    <div id="agentPort" class="mt-1 text-2xl font-bold text-gray-900">-</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Network Fault Injection (Phase 2) -->
+        <section class="mb-8">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-chaos-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                Network Fault Injection <span class="text-xs bg-chaos-100 text-chaos-700 px-2 py-0.5 rounded">Phase 2</span>
+            </h2>
+            <div class="section-card">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Latency Injection -->
+                    <div class="control-group" id="latencyGroup">
+                        <div class="flex items-center justify-between">
+                            <label class="font-medium text-gray-900">Latency Injection</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="latencyEnabled" onchange="updateConfig()">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div id="latencyControls" class="space-y-4 disabled">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Delay: <span id="latencyValue">0</span> ms</label>
+                                <div class="slider-container">
+                                    <input type="range" id="latencyMs" min="0" max="10000" step="100" value="0" oninput="updateLatencyDisplay(); updateConfig()">
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500">Applies to RestTemplate, OpenFeign, WebClient outbound calls</p>
+                        </div>
+                    </div>
+
+                    <!-- Exception Injection -->
+                    <div class="control-group border-l border-gray-200 lg:border-l lg:pl-6" id="exceptionGroup">
+                        <div class="flex items-center justify-between">
+                            <label class="font-medium text-gray-900">Exception Injection</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="exceptionEnabled" onchange="updateConfig()">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div id="exceptionControls" class="space-y-4 disabled">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Exception Type</label>
+                                <select id="exceptionType" class="w-full md:w-64 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-chaos-500 focus:border-chaos-500" onchange="updateConfig()">
+                                    <option value="SocketTimeoutException">java.net.SocketTimeoutException</option>
+                                    <option value="ConnectException">java.net.ConnectException</option>
+                                    <option value="Http503">HTTP 503 Service Unavailable</option>
+                                    <option value="Http500">HTTP 500 Internal Server Error</option>
+                                    <option value="Http504">HTTP 504 Gateway Timeout</option>
+                                </select>
+                            </div>
+                            <p class="text-xs text-gray-500">Throws selected exception instead of making network call</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Real-time Metrics (Phase 4) -->
+        <section class="mb-8">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-chaos-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                Real-time Metrics <span class="text-xs bg-chaos-100 text-chaos-700 px-2 py-0.5 rounded">Phase 4</span>
+            </h2>
+            <div class="section-card">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="control-group">
+                        <label class="font-medium text-gray-900">SSE Event Stream</label>
+                        <div class="flex items-center gap-4 mt-2">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="sseEnabled" onchange="toggleSSE()">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span id="sseStatus" class="text-sm text-gray-500">Disconnected</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Server-Sent Events for live metrics updates (1s interval)</p>
+                    </div>
+                    <div class="control-group border-l border-gray-200 lg:border-l lg:pl-6">
+                        <label class="font-medium text-gray-900">Event Log</label>
+                        <div id="eventLog" class="mt-2 h-32 bg-gray-50 rounded-lg p-3 font-mono text-xs text-gray-700 overflow-y-auto border border-gray-200" style="font-family: monospace;">
+                            <div class="text-gray-400">Waiting for SSE connection...</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-4">
+                    <div class="metric-card bg-white rounded-lg p-4 border border-gray-200">
+                        <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Mem Retained (Phase 3)</div>
+                        <div id="memRetainedMb" class="mt-1 text-2xl font-bold text-gray-900">0 MB</div>
+                        <div class="text-xs text-gray-500">Entries: <span id="memEntries">0</span></div>
+                    </div>
+                    <div class="metric-card bg-white rounded-lg p-4 border border-gray-200">
+                        <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">CPU Busy-Spin (Phase 3)</div>
+                        <div id="cpuBusyMs" class="mt-1 text-2xl font-bold text-gray-900">0 ms</div>
+                        <div class="text-xs text-gray-500">Count: <span id="cpuBusyCount">0</span></div>
+                    </div>
+                    <div class="metric-card bg-white rounded-lg p-4 border border-gray-200">
+                        <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">SSE Events</div>
+                        <div id="sseEventCount" class="mt-1 text-2xl font-bold text-gray-900">0</div>
+                        <div class="text-xs text-gray-500">Sequence: <span id="sseSeq">-</span></div>
+                    </div>
+                    <div class="metric-card bg-white rounded-lg p-4 border border-gray-200">
+                        <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Latency (live)</div>
+                        <div id="liveLatency" class="mt-1 text-2xl font-bold text-gray-900">-</div>
+                        <div class="text-xs text-gray-500">Last update: <span id="lastUpdate">-</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Profile Management (Phase 4) -->
+        <section class="mb-8">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-chaos-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Profile Management <span class="text-xs bg-chaos-100 text-chaos-700 px-2 py-0.5 rounded">Phase 4</span>
+            </h2>
+            <div class="section-card">
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button onclick="exportProfile()" class="px-4 py-2 bg-chaos-600 text-white rounded-lg hover:bg-chaos-700 transition-colors flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                        Export Profile (JSON)
+                    </button>
+                    <div class="flex items-center gap-2 flex-1">
+                        <input type="file" id="profileImport" accept=".json" class="hidden" onchange="importProfile(event)">
+                        <button onclick="document.getElementById('profileImport').click()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                            Import Profile
+                        </button>
+                        <span id="importStatus" class="text-sm text-gray-500"></span>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">Save/load complete chaos configurations including all Phase 2 & 3 settings</p>
+            </div>
+        </section>
+
+        <!-- Deep JVM Stressors (Phase 3) -->
+        <section class="mb-8">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-chaos-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Deep JVM Stressors <span class="text-xs bg-chaos-100 text-chaos-700 px-2 py-0.5 rounded">Phase 3</span>
+            </h2>
+            
+            <!-- Virtual Thread Carrier Pinning -->
+            <div class="section-card mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-6 h-6 text-chaos-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        <div>
+                            <h3 class="font-semibold text-gray-900">Virtual Thread Carrier Pinning</h3>
+                            <p class="text-sm text-gray-500">Force virtual threads to pin to carrier threads via synchronized blocks</p>
+                        </div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="pinningEnabled" onchange="updateConfig()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div id="pinningControls" class="space-y-4 disabled border-t border-gray-200 pt-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Pinning Probability: <span id="pinningProbValue">10</span>%</label>
+                        <div class="slider-container">
+                            <input type="range" id="pinningProbability" min="0" max="100" step="1" value="10" oninput="updatePinningProbDisplay(); updateConfig()">
+                        </div>
+                        <p class="text-xs text-gray-500">Percentage of virtual thread executions that will be pinned (synchronized block)</p>
+                    </div>
+                    <div class="bg-chaos-50 border border-chaos-200 rounded-lg p-3 text-xs text-chaos-800">
+                        <strong>⚠ Warning:</strong> High pinning probability (>50%) can severely degrade throughput by preventing virtual thread unmounting. Use carefully in production.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Memory Pressure -->
+            <div class="section-card mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-6 h-6 text-chaos-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <div>
+                            <h3 class="font-semibold text-gray-900">Managed Memory Pressure</h3>
+                            <p class="text-sm text-gray-500">Retain allocated objects in ThreadLocal/ConcurrentHashMap to simulate memory leaks</p>
+                        </div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="memoryPressureEnabled" onchange="updateConfig()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div id="memoryPressureControls" class="space-y-4 disabled border-t border-gray-200 pt-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Target Retention: <span id="memoryPressureValue">100</span> MB</label>
+                        <div class="slider-container">
+                            <input type="range" id="memoryPressureMb" min="10" max="500" step="10" value="100" oninput="updateMemoryPressureDisplay(); updateConfig()">
+                        </div>
+                        <p class="text-xs text-gray-500">Maximum memory to retain across all allocation sites (hard cap: 500 MB)</p>
+                    </div>
+                    <div class="flex gap-4 text-sm">
+                        <span class="text-gray-600">Retained: <strong id="memRetained">0</strong> MB</span>
+                        <span class="text-gray-600">Entries: <strong id="memEntries">0</strong></span>
+                        <button onclick="clearMemoryRetention()" class="text-chaos-600 hover:underline text-xs">Clear Retention</button>
+                    </div>
+                    <div class="bg-chaos-50 border border-chaos-200 rounded-lg p-3 text-xs text-chaos-800">
+                        <strong>Safety:</strong> Automatic hard cap at 500 MB / 10,000 entries. Triggers emergency cleanup on OOM.
+                    </div>
+                </div>
+            </div>
+
+            <!-- CPU Backpressure -->
+            <div class="section-card mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-6 h-6 text-chaos-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div>
+                            <h3 class="font-semibold text-gray-900">CPU Thermal Backpressure</h3>
+                            <p class="text-sm text-gray-500">Busy-spin computation on carrier threads to simulate CPU throttling/noisy neighbors</p>
+                        </div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="cpuBackpressureEnabled" onchange="updateConfig()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div id="cpuBackpressureControls" class="space-y-4 disabled border-t border-gray-200 pt-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Intensity: <span id="cpuIntensityValue">50</span>%</label>
+                        <div class="slider-container">
+                            <input type="range" id="cpuBackpressureIntensity" min="0" max="100" step="5" value="50" oninput="updateCpuIntensityDisplay(); updateConfig()">
+                        </div>
+                        <p class="text-xs text-gray-500">CPU load intensity (0-100%). Higher = more busy-spin iterations per interception</p>
+                    </div>
+                    <div class="flex gap-4 text-sm">
+                        <span class="text-gray-600">Busy-spin time: <strong id="cpuBusyNanos">0</strong> ms</span>
+                        <span class="text-gray-600">Count: <strong id="cpuBusyCount">0</strong></span>
+                        <button onclick="resetCpuMetrics()" class="text-chaos-600 hover:underline text-xs">Reset Metrics</button>
+                    </div>
+                    <div class="bg-chaos-50 border border-chaos-200 rounded-lg p-3 text-xs text-chaos-800">
+                        <strong>Note:</strong> Runs on ForkJoinPool carrier threads, directly impacting virtual thread scheduling latency.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center text-sm text-gray-500 border-t border-gray-200 pt-6">
+            <p>Chaos Agent v0.1.0-SNAPSHOT | <a href="https://github.com/haipeng-guo-dev/my-chaos-agent" class="text-chaos-600 hover:underline" target="_blank">GitHub</a> | MIT License</p>
+        </footer>
+    </div>
+
+    <script>
+        let pollInterval = null;
+        let configPollInterval = null;
+
+        async function fetchStatus() {
+            try {
+                const response = await fetch('/api/status');
+                if (!response.ok) throw new Error('Status fetch failed');
+                const data = await response.json();
+                updateTelemetry(data);
+                updateConnectionStatus(true);
+            } catch (e) {
+                updateConnectionStatus(false);
+                console.error('Status fetch error:', e);
+            }
+        }
+
+        async function fetchConfig() {
+            try {
+                const response = await fetch('/api/config');
+                if (!response.ok) throw new Error('Config fetch failed');
+                const data = await response.json();
+                updateConfigUI(data);
+            } catch (e) {
+                console.error('Config fetch error:', e);
+            }
+        }
+
+        function updateTelemetry(data) {
+            document.getElementById('jvmVersion').textContent = data.jvm.version;
+            document.getElementById('heapUsed').textContent = formatBytes(data.memory.used) + ' / ' + formatBytes(data.memory.max);
+            document.getElementById('heapBar').style.width = data.memory.usedPercent + '%';
+            document.getElementById('threadCount').textContent = data.threads.count;
+            document.getElementById('peakThreads').textContent = data.threads.peakCount;
+            document.getElementById('agentPort').textContent = data.agent.port;
+        }
+
+        function updateConfigUI(config) {
+            // Phase 2
+            document.getElementById('latencyEnabled').checked = config.latencyEnabled;
+            document.getElementById('latencyMs').value = config.latencyMs;
+            document.getElementById('latencyValue').textContent = config.latencyMs;
+            document.getElementById('exceptionEnabled').checked = config.exceptionEnabled;
+            document.getElementById('exceptionType').value = config.exceptionType;
+            
+            // Phase 3
+            document.getElementById('pinningEnabled').checked = config.pinningEnabled;
+            document.getElementById('pinningProbability').value = Math.round(config.pinningProbability * 100);
+            document.getElementById('pinningProbValue').textContent = Math.round(config.pinningProbability * 100);
+            document.getElementById('memoryPressureEnabled').checked = config.memoryPressureEnabled;
+            document.getElementById('memoryPressureMb').value = config.memoryPressureMb;
+            document.getElementById('memoryPressureValue').textContent = config.memoryPressureMb;
+            document.getElementById('cpuBackpressureEnabled').checked = config.cpuBackpressureEnabled;
+            document.getElementById('cpuBackpressureIntensity').value = config.cpuBackpressureIntensity;
+            document.getElementById('cpuIntensityValue').textContent = config.cpuBackpressureIntensity;
+            
+            toggleControls();
+            fetchMemoryMetrics();
+            fetchCpuMetrics();
+        }
+
+        function toggleControls() {
+            // Phase 2
+            const latencyEnabled = document.getElementById('latencyEnabled').checked;
+            const exceptionEnabled = document.getElementById('exceptionEnabled').checked;
+            document.getElementById('latencyControls').classList.toggle('disabled', !latencyEnabled);
+            document.getElementById('exceptionControls').classList.toggle('disabled', !exceptionEnabled);
+            
+            // Phase 3
+            const pinningEnabled = document.getElementById('pinningEnabled').checked;
+            const memoryPressureEnabled = document.getElementById('memoryPressureEnabled').checked;
+            const cpuBackpressureEnabled = document.getElementById('cpuBackpressureEnabled').checked;
+            document.getElementById('pinningControls').classList.toggle('disabled', !pinningEnabled);
+            document.getElementById('memoryPressureControls').classList.toggle('disabled', !memoryPressureEnabled);
+            document.getElementById('cpuBackpressureControls').classList.toggle('disabled', !cpuBackpressureEnabled);
+        }
+
+        function updateLatencyDisplay() {
+            document.getElementById('latencyValue').textContent = document.getElementById('latencyMs').value;
+        }
+        function updatePinningProbDisplay() {
+            document.getElementById('pinningProbValue').textContent = document.getElementById('pinningProbability').value;
+        }
+        function updateMemoryPressureDisplay() {
+            document.getElementById('memoryPressureValue').textContent = document.getElementById('memoryPressureMb').value;
+        }
+        function updateCpuIntensityDisplay() {
+            document.getElementById('cpuIntensityValue').textContent = document.getElementById('cpuBackpressureIntensity').value;
+        }
+
+        async function updateConfig() {
+            toggleControls();
+            const config = {
+                // Phase 2
+                latencyMs: parseInt(document.getElementById('latencyMs').value),
+                latencyEnabled: document.getElementById('latencyEnabled').checked,
+                exceptionEnabled: document.getElementById('exceptionEnabled').checked,
+                exceptionType: document.getElementById('exceptionType').value,
+                // Phase 3
+                pinningEnabled: document.getElementById('pinningEnabled').checked,
+                pinningProbability: parseInt(document.getElementById('pinningProbability').value) / 100,
+                memoryPressureEnabled: document.getElementById('memoryPressureEnabled').checked,
+                memoryPressureMb: parseInt(document.getElementById('memoryPressureMb').value),
+                cpuBackpressureEnabled: document.getElementById('cpuBackpressureEnabled').checked,
+                cpuBackpressureIntensity: parseInt(document.getElementById('cpuBackpressureIntensity').value)
+            };
+            try {
+                await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+            } catch (e) {
+                console.error('Config update error:', e);
+            }
+        }
+
+        async function fetchMemoryMetrics() {
+            try {
+                // The memory metrics are exposed via static methods - we'd need a new endpoint
+                // For now, skip - would need to add /api/metrics endpoint
+            } catch (e) {}
+        }
+
+        async function fetchCpuMetrics() {
+            // Same - would need new endpoint
+        }
+
+        function clearMemoryRetention() {
+            // Would need a new endpoint to trigger MemoryPressureAdvice.clearRetention()
+            alert('Would clear memory retention - need /api/clear-memory endpoint');
+        }
+
+        function resetCpuMetrics() {
+            // Would need a new endpoint to trigger CpuBackpressureAdvice.resetMetrics()
+            alert('Would reset CPU metrics - need /api/reset-cpu endpoint');
+        }
+
+        // Phase 4: SSE Metrics Stream
+        let eventSource = null;
+        let sseEventCount = 0;
+        
+        function toggleSSE() {
+            const enabled = document.getElementById('sseEnabled').checked;
+            if (enabled) {
+                connectSSE();
+            } else {
+                disconnectSSE();
+            }
+        }
+
+        function connectSSE() {
+            if (eventSource) return;
+            
+            eventSource = new EventSource('/api/metrics/stream');
+            
+            eventSource.onopen = () => {
+                document.getElementById('sseStatus').textContent = 'Connected';
+                document.getElementById('sseStatus').className = 'text-sm text-green-700';
+                logEvent('SSE connected');
+            };
+            
+            eventSource.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    updateSSEMetrics(data);
+                    logEvent(`Event #${data.seq}: mem=${data.memory.usedPercent.toFixed(1)}%, threads=${data.threads}, phase3.mem=${data.phase3.memRetainedMb}MB, phase3.cpu=${data.phase3.cpuBusyMs}ms`);
+                } catch (e) {
+                    console.error('SSE parse error:', e);
+                }
+            };
+            
+            eventSource.onerror = () => {
+                document.getElementById('sseStatus').textContent = 'Disconnected (retrying...)';
+                document.getElementById('sseStatus').className = 'text-sm text-yellow-700';
+            };
+        }
+
+        function disconnectSSE() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+                document.getElementById('sseStatus').textContent = 'Disconnected';
+                document.getElementById('sseStatus').className = 'text-sm text-gray-500';
+                logEvent('SSE disconnected');
+            }
+        }
+
+        function updateSSEMetrics(data) {
+            sseEventCount++;
+            document.getElementById('sseEventCount').textContent = sseEventCount;
+            document.getElementById('sseSeq').textContent = data.seq;
+            document.getElementById('memRetainedMb').textContent = data.phase3.memRetainedMb + ' MB';
+            document.getElementById('memEntries').textContent = data.phase3.memEntries;
+            document.getElementById('cpuBusyMs').textContent = data.phase3.cpuBusyMs + ' ms';
+            document.getElementById('cpuBusyCount').textContent = data.phase3.cpuBusyCount;
+            document.getElementById('liveLatency').textContent = data.memory.usedPercent.toFixed(1) + '%';
+            document.getElementById('lastUpdate').textContent = new Date(data.timestamp).toLocaleTimeString();
+        }
+
+        function logEvent(msg) {
+            const log = document.getElementById('eventLog');
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.textContent = `[${time}] ${msg}`;
+            log.insertBefore(entry, log.firstChild);
+            // Keep only last 50 entries
+            while (log.children.length > 50) {
+                log.removeChild(log.lastChild);
+            }
+        }
+
+        // Phase 4: Profile Export/Import
+        async function exportProfile() {
+            try {
+                const response = await fetch('/api/profile');
+                if (!response.ok) throw new Error('Export failed');
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'chaos-profile.json';
+                a.click();
+                URL.revokeObjectURL(url);
+                logEvent('Profile exported');
+            } catch (e) {
+                console.error('Export error:', e);
+                alert('Export failed: ' + e.message);
+            }
+        }
+
+        async function importProfile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            try {
+                const text = await file.text();
+                const response = await fetch('/api/profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: text
+                });
+                if (!response.ok) throw new Error('Import failed');
+                const result = await response.json();
+                document.getElementById('importStatus').textContent = 'Imported: ' + result.message;
+                document.getElementById('importStatus').className = 'text-sm text-green-700';
+                logEvent('Profile imported');
+                fetchConfig(); // Refresh UI
+            } catch (e) {
+                console.error('Import error:', e);
+                document.getElementById('importStatus').textContent = 'Failed: ' + e.message;
+                document.getElementById('importStatus').className = 'text-sm text-red-700';
+            }
+            event.target.value = ''; // Reset file input
+        }
+
+        function updateConnectionStatus(connected) {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            if (connected) {
+                dot.className = 'status-indicator status-healthy';
+                text.textContent = 'Connected';
+                text.className = 'text-sm font-medium text-green-700';
+            } else {
+                dot.className = 'status-indicator status-danger';
+                text.textContent = 'Disconnected';
+                text.className = 'text-sm font-medium text-red-700';
+            }
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        // Initialize
+        fetchStatus();
+        fetchConfig();
+        pollInterval = setInterval(fetchStatus, 3000);
+        configPollInterval = setInterval(fetchConfig, 5000);
+        
+        window.addEventListener('beforeunload', () => {
+            if (pollInterval) clearInterval(pollInterval);
+            if (configPollInterval) clearInterval(configPollInterval);
+            disconnectSSE();
+        });
+    </script>
+</body>
+</html>
