@@ -159,8 +159,9 @@ public class CarrierPinningInterceptor {
             // Execute synchronized block to force carrier pinning
             // This is the key: synchronized blocks pin virtual threads to carrier threads
             synchronized (PINNING_LOCK) {
-                // Simulate some work while pinned - busy spin for a short time
-                long iterations = 1000 + ThreadLocalRandom.current().nextInt(5000);
+                // Simulate some work while pinned - busy spin for measurable time
+                // Increased iterations to ensure measurable delay on modern CPUs
+                long iterations = 2_000_000 + ThreadLocalRandom.current().nextInt(3_000_000);
                 long sum = 0;
                 for (long i = 0; i < iterations; i++) {
                     sum += i;
