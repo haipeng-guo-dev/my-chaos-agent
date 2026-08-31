@@ -39,7 +39,7 @@ Built for Java 21+ and Spring Boot (RestTemplate, WebClient, Feign), it's the fa
 | **Virtual Thread workloads (Java 21+)** | ✅ Unique differentiator | Only tool that simulates `synchronized`/JNI carrier pinning |
 | **Monoliths** | ✅ Full support | Single JVM, all stressors work |
 | **Distributed systems / Microservices** | ✅ Full support | Attach to each service independently; correlate via exported profiles |
-| **Kubernetes / Containerized** | ✅ Works | Add `-javaagent` to container startup; dashboard via port-forward |
+| **Kubernetes / Containerized** | ⚠️ Manual | Add `-javaagent` to Dockerfile/startup; dashboard via port-forward. Dynamic sidecar injection: [planned](ROADMAP.md#long-term-backlog--adaptations) |
 
 **Requirements:** Java 21+, Maven 3.9+ for building. The agent shades Byte Buddy — zero classpath pollution, no dependency conflicts.
 

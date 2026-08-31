@@ -59,7 +59,7 @@ flowchart TD
 ### ✅ Phase 4: Production Polish & Open Source Launch (Target: Weeks 9-10)
 *Goal: Refine the outward user experience to encourage rapid adoption and community engagement.*
 
-- [x] **Visual Impact Monitor:** Integrate real-time graphs displaying the delta between normal execution and active chaos metrics directly inside the web UI.
+- [ ] **Visual Impact Monitor:** Integrate real-time graphs displaying the delta between normal execution and active chaos metrics directly inside the web UI.
 - [x] **Documentation Strategy:** Deliver an elite `README.md` featuring a 3-step quickstart, clean visual configuration matrices, and clear contribution instructions (`CONTRIBUTING.md`).
 - [x] **Public Distribution Toolkit:** Create high-quality animated reference media demonstrating real-time UI manipulation affecting running target systems for developer community distribution.
 
