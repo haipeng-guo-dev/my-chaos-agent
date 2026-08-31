@@ -286,4 +286,117 @@ class ChaosAgentHttpIntegrationTest {
         assertThat(response.body()).contains("\"status\":\"ok\"");
         assertThat(response.body()).contains("Profile imported successfully");
     }
+
+    @Test
+    void statusEndpointReflectsMemoryPressureMetrics() throws Exception {
+        // Enable memory pressure and trigger retention via Advice
+        ChaosAgent.ChaosConfig.memoryPressureEnabled = true;
+        ChaosAgent.ChaosConfig.memoryPressureMb = 10;
+
+        // Trigger multiple memory retention calls
+        for (int i = 0; i < 200; i++) {
+            MemoryPressureInterceptor.MemoryPressureAdvice.enter("add", new Object[]{"item" + i});
+        }
+
+        long expectedBytes = MemoryPressureInterceptor.getRetainedBytes();
+        int expectedEntries = MemoryPressureInterceptor.getRetainedEntries();
+
+        // Verify status endpoint includes Phase 3 metrics
+        var request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/api/status"))
+                .GET()
+                .build();
+
+        var response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.body()).contains("phase3");
+        assertThat(response.body()).contains("memRetainedMb");
+        assertThat(response.body()).contains("memEntries");
+        // Verify the values match (allowing for MB rounding)
+        int expectedMb = (int) (expectedBytes / (1024 * 1024));
+        assertThat(response.body()).contains(String.valueOf(expectedMb));
+    }
+
+    @Test
+    void statusEndpointReflectsCpuBackpressureMetrics() throws Exception {
+        // Enable CPU backpressure and trigger busy spin
+        ChaosAgent.ChaosConfig.cpuBackpressureEnabled = true;
+        ChaosAgent.ChaosConfig.cpuBackpressureIntensity = 100;
+        CpuBackpressureInterceptor.CpuBackpressureAdvice.resetMetrics();
+
+        // Trigger multiple busy spin calls
+        for (int i = 0; i < 5; i++) {
+            CpuBackpressureInterceptor.CpuBackpressureAdvice.enter("exec");
+        }
+
+        long expectedNanos = CpuBackpressureInterceptor.getTotalBusyNanos();
+        long expectedCount = CpuBackpressureInterceptor.getBusyCount();
+
+        // Verify status endpoint includes Phase 3 metrics
+        var request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/api/status"))
+                .GET()
+                .build();
+
+        var response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.body()).contains("cpuBusyMs");
+        assertThat(response.body()).contains("cpuBusyCount");
+        // Verify count matches
+        assertThat(response.body()).contains(String.valueOf(expectedCount));
+    }
+
+    @Test
+    void metricsStreamIncludesPhase3Metrics() throws Exception {
+        // Enable both memory pressure and CPU backpressure
+        ChaosAgent.ChaosConfig.memoryPressureEnabled = true;
+        ChaosAgent.ChaosConfig.memoryPressureMb = 10;
+        ChaosAgent.ChaosConfig.cpuBackpressureEnabled = true;
+        ChaosAgent.ChaosConfig.cpuBackpressureIntensity = 100;
+        CpuBackpressureInterceptor.CpuBackpressureAdvice.resetMetrics();
+
+        // Trigger activity
+        for (int i = 0; i < 50; i++) {
+            MemoryPressureInterceptor.MemoryPressureAdvice.enter("add", new Object[]{"item" + i});
+            CpuBackpressureInterceptor.CpuBackpressureAdvice.enter("exec");
+        }
+
+        long expectedMemBytes = MemoryPressureInterceptor.getRetainedBytes();
+        int expectedMemEntries = MemoryPressureInterceptor.getRetainedEntries();
+        long expectedCpuNanos = CpuBackpressureInterceptor.getTotalBusyNanos();
+        long expectedCpuCount = CpuBackpressureInterceptor.getBusyCount();
+
+        // Connect to SSE endpoint and read one event
+        var request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/api/metrics/stream"))
+                .timeout(Duration.ofSeconds(5))
+                .GET()
+                .build();
+
+        var response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofLines());
+        assertThat(response.statusCode()).isEqualTo(200);
+
+        // Read first event from stream
+        var lines = response.body().iterator();
+        String eventLine = lines.hasNext() ? lines.next() : "";
+        response.body().close();
+
+        assertThat(eventLine).startsWith("data: ");
+        String json = eventLine.substring(6); // Remove "data: " prefix
+
+        // Parse and verify Phase 3 metrics present
+        assertThat(json).contains("phase3");
+        assertThat(json).contains("memRetainedMb");
+        assertThat(json).contains("memEntries");
+        assertThat(json).contains("cpuBusyMs");
+        assertThat(json).contains("cpuBusyCount");
+
+        // Verify values are reasonable (non-negative)
+        int memMb = (int) (expectedMemBytes / (1024 * 1024));
+        assertThat(json).contains(String.valueOf(memMb));
+        assertThat(json).contains(String.valueOf(expectedMemEntries));
+        assertThat(json).contains(String.valueOf(expectedCpuCount));
+    }
 }

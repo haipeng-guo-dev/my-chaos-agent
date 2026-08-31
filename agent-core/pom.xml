@@ -74,49 +74,23 @@
                                     <pattern>net.bytebuddy</pattern>
                                     <shadedPattern>com.chaosagent.shaded.bytebuddy</shadedPattern>
                                 </relocation>
-                                <relocation>
-                                    <pattern>net.bytebuddy.agent</pattern>
-                                    <shadedPattern>com.chaosagent.shaded.bytebuddy.agent</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>net.bytebuddy.asm</pattern>
-                                    <shadedPattern>com.chaosagent.shaded.bytebuddy.asm</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>net.bytebuddy.build</pattern>
-                                    <shadedPattern>com.chaosagent.shaded.bytebuddy.build</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>net.bytebuddy.description</pattern>
-                                    <shadedPattern>com.chaosagent.shaded.bytebuddy.description</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>net.bytebuddy.dynamic</pattern>
-                                    <shadedPattern>com.chaosagent.shaded.bytebuddy.dynamic</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>net.bytebuddy.implementation</pattern>
-                                    <shadedPattern>com.chaosagent.shaded.bytebuddy.implementation</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>net.bytebuddy.jar</pattern>
-                                    <shadedPattern>com.chaosagent.shaded.bytebuddy.jar</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>net.bytebuddy.matcher</pattern>
-                                    <shadedPattern>com.chaosagent.shaded.bytebuddy.matcher</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>net.bytebuddy.utility</pattern>
-                                    <shadedPattern>com.chaosagent.shaded.bytebuddy.utility</shadedPattern>
-                                </relocation>
                             </relocations>
+                            <!-- Process all classes including project's own to rewrite bytebuddy references -->
                             <artifactSet>
                                 <includes>
-                                    <include>net.bytebuddy:byte-buddy</include>
-                                    <include>net.bytebuddy:byte-buddy-agent</include>
+                                    <include>*:*</include>
                                 </includes>
                             </artifactSet>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                         </configuration>
                     </execution>

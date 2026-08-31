@@ -3,8 +3,12 @@ package com.chaosagent.agent;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.instrument.Instrumentation;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.jar.JarOutputStream;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -50,8 +54,12 @@ public class ChaosAgent {
             return;
         }
 
+        parseAgentArgs(agentArgs);
+        appendBootstrapSupport(inst);
+        syncStressConfig();
         int port = parsePort(agentArgs);
         System.out.println("[ChaosAgent] Starting on port " + port);
+        System.out.println("[ChaosAgent] Config: memoryPressureEnabled=" + ChaosConfig.memoryPressureEnabled + ", memoryPressureMb=" + ChaosConfig.memoryPressureMb + ", cpuBackpressureEnabled=" + ChaosConfig.cpuBackpressureEnabled + ", cpuBackpressureIntensity=" + ChaosConfig.cpuBackpressureIntensity);
         System.out.println("[ChaosAgent] Java version: " + System.getProperty("java.version"));
         System.out.println("[ChaosAgent] PID: " + ProcessHandle.current().pid());
 
@@ -119,6 +127,67 @@ public class ChaosAgent {
         }
     }
 
+    private static void parseAgentArgs(String agentArgs) {
+        if (agentArgs == null || agentArgs.isBlank()) return;
+        for (String part : agentArgs.split(",")) {
+            part = part.trim();
+            if (part.startsWith("port=")) {
+                try { /* port is handled separately */ } catch (NumberFormatException ignored) {}
+            } else if (part.startsWith("memoryPressureEnabled=")) {
+                ChaosConfig.memoryPressureEnabled = Boolean.parseBoolean(part.substring(22));
+            } else if (part.startsWith("memoryPressureMb=")) {
+                try { ChaosConfig.memoryPressureMb = Integer.parseInt(part.substring(17)); } catch (NumberFormatException ignored) {}
+            } else if (part.startsWith("cpuBackpressureEnabled=")) {
+                ChaosConfig.cpuBackpressureEnabled = Boolean.parseBoolean(part.substring(23));
+            } else if (part.startsWith("cpuBackpressureIntensity=")) {
+                try { ChaosConfig.cpuBackpressureIntensity = Integer.parseInt(part.substring(25)); } catch (NumberFormatException ignored) {}
+            } else if (part.startsWith("pinningEnabled=")) {
+                ChaosConfig.pinningEnabled = Boolean.parseBoolean(part.substring(15));
+            } else if (part.startsWith("pinningProbability=")) {
+                try { ChaosConfig.pinningProbability = Double.parseDouble(part.substring(19)); } catch (NumberFormatException ignored) {}
+            }
+        }
+    }
+
+    private static void appendBootstrapSupport(Instrumentation inst) {
+        List<String> classResources = List.of(
+            "com/chaosagent/agent/BootstrapStressState.class",
+            "com/chaosagent/agent/BootstrapCpuBackpressureAdvice.class",
+            "com/chaosagent/agent/BootstrapMemoryPressureAdvice.class"
+        );
+        try {
+            // Load annotation-bearing advice through the application loader before
+            // bootstrap receives same-named execution-only copies.
+            Class.forName(BootstrapCpuBackpressureAdvice.class.getName(), true, ChaosAgent.class.getClassLoader());
+            Class.forName(BootstrapMemoryPressureAdvice.class.getName(), true, ChaosAgent.class.getClassLoader());
+
+            Path bootstrapJar = Files.createTempFile("chaos-agent-bootstrap-", ".jar");
+            bootstrapJar.toFile().deleteOnExit();
+            try (JarOutputStream jar = new JarOutputStream(Files.newOutputStream(bootstrapJar))) {
+                for (String classResource : classResources) {
+                    try (InputStream classBytes = ChaosAgent.class.getClassLoader().getResourceAsStream(classResource)) {
+                        if (classBytes == null) throw new IOException("Missing " + classResource);
+                        jar.putNextEntry(new JarEntry(classResource));
+                        classBytes.transferTo(jar);
+                        jar.closeEntry();
+                    }
+                }
+            }
+            inst.appendToBootstrapClassLoaderSearch(new JarFile(bootstrapJar.toFile()));
+        } catch (Exception e) {
+            System.err.println("[ChaosAgent] Could not install bootstrap stress support: " + e.getMessage());
+        }
+    }
+
+    private static void syncStressConfig() {
+        BootstrapStressStateAccess.configure(
+            ChaosConfig.memoryPressureEnabled,
+            ChaosConfig.memoryPressureMb,
+            ChaosConfig.cpuBackpressureEnabled,
+            ChaosConfig.cpuBackpressureIntensity
+        );
+    }
+
     private static int parsePort(String agentArgs) {
         if (agentArgs == null || agentArgs.isBlank()) return DEFAULT_PORT;
         for (String part : agentArgs.split(",")) {
@@ -152,6 +221,20 @@ public class ChaosAgent {
         long usedMem = totalMem - freeMem;
         long maxMem = rt.maxMemory();
 
+        // Phase 3 metrics
+        long memRetained = 0;
+        long memEntries = 0;
+        long cpuBusyNanos = 0;
+        long cpuBusyCount = 0;
+        try {
+            memRetained = MemoryPressureInterceptor.getRetainedBytes();
+            memEntries = MemoryPressureInterceptor.getRetainedEntries();
+        } catch (Exception ignored) {}
+        try {
+            cpuBusyNanos = CpuBackpressureInterceptor.getTotalBusyNanos();
+            cpuBusyCount = CpuBackpressureInterceptor.getBusyCount();
+        } catch (Exception ignored) {}
+
         String json = String.format("""
             {
               "timestamp": "%s",
@@ -174,6 +257,12 @@ public class ChaosAgent {
               "agent": {
                 "started": true,
                 "port": %d
+              },
+              "phase3": {
+                "memRetainedMb": %d,
+                "memEntries": %d,
+                "cpuBusyMs": %d,
+                "cpuBusyCount": %d
               }
             }
             """,
@@ -185,7 +274,11 @@ public class ChaosAgent {
             maxMem > 0 ? (usedMem * 100.0 / maxMem) : 0,
             Thread.activeCount(),
             getPeakThreadCount(),
-            getPort()
+            getPort(),
+            memRetained / (1024 * 1024),
+            memEntries,
+            cpuBusyNanos / 1_000_000,
+            cpuBusyCount
         );
 
         exchange.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");
@@ -236,6 +329,7 @@ public class ChaosAgent {
             ChaosConfig.memoryPressureMb = extractInt(body, "memoryPressureMb", ChaosConfig.memoryPressureMb);
             ChaosConfig.cpuBackpressureEnabled = extractBoolean(body, "cpuBackpressureEnabled", ChaosConfig.cpuBackpressureEnabled);
             ChaosConfig.cpuBackpressureIntensity = extractInt(body, "cpuBackpressureIntensity", ChaosConfig.cpuBackpressureIntensity);
+            syncStressConfig();
 
             String json = "{\"status\":\"ok\"}";
             exchange.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");
@@ -397,6 +491,7 @@ public class ChaosAgent {
             ChaosConfig.memoryPressureMb = memoryPressureMb;
             ChaosConfig.cpuBackpressureEnabled = cpuBackpressureEnabled;
             ChaosConfig.cpuBackpressureIntensity = cpuBackpressureIntensity;
+            syncStressConfig();
 
             String json = "{\"status\":\"ok\",\"message\":\"Profile imported successfully\"}";
             exchange.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");

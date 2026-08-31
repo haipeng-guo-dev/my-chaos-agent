@@ -77,8 +77,6 @@ public class CarrierPinningInterceptor {
         new AgentBuilder.Default()
             .ignore(ElementMatchers.nameStartsWith("com.chaosagent."))
             .disableClassFormatChanges()
-            .with(AgentBuilder.Listener.StreamWriting.toSystemOut())
-            .with(AgentBuilder.InstallationListener.StreamWriting.toSystemOut())
             .type(typeMatcher)
             .transform(transformer)
             .installOn(inst);

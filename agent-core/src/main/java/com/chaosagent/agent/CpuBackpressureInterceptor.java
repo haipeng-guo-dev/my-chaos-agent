@@ -3,6 +3,7 @@ package com.chaosagent.agent;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.utility.JavaModule;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 
@@ -11,8 +12,6 @@ import java.lang.instrument.UnmodifiableClassException;
 import java.security.ProtectionDomain;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * CPU Thermal Backpressure Simulator.
@@ -69,10 +68,6 @@ public class CpuBackpressureInterceptor {
         )
     );
 
-    // Metrics
-    private static final AtomicLong TOTAL_BUSY_SPIN_NANOS = new AtomicLong(0);
-    private static final AtomicLong BUSY_SPIN_COUNT = new AtomicLong(0);
-
     public static void install(Instrumentation inst) {
         ElementMatcher.Junction<TypeDescription> typeMatcher = buildTypeMatcher();
 
@@ -85,14 +80,20 @@ public class CpuBackpressureInterceptor {
                 ElementMatchers.namedOneOf(spec.methodNames);
 
             System.out.println("[ChaosAgent] Transforming for CPU backpressure: " + spec.displayName + " (" + className + ")");
-            return builder.visit(Advice.to(CpuBackpressureAdvice.class).on(methodMatcher));
+            return builder.visit(Advice.to(BootstrapCpuBackpressureAdvice.class).on(methodMatcher));
         };
 
         new AgentBuilder.Default()
             .ignore(ElementMatchers.nameStartsWith("com.chaosagent."))
             .disableClassFormatChanges()
-            .with(AgentBuilder.Listener.StreamWriting.toSystemOut())
-            .with(AgentBuilder.InstallationListener.StreamWriting.toSystemOut())
+            .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+            .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
+            .with(new AgentBuilder.Listener.Adapter() {
+                @Override
+                public void onError(String typeName, ClassLoader classLoader, JavaModule module, boolean loaded, Throwable throwable) {
+                    System.err.println("[ChaosAgent] CPU backpressure transform failed for " + typeName + ": " + throwable);
+                }
+            })
             .type(typeMatcher)
             .transform(transformer)
             .installOn(inst);
@@ -116,20 +117,46 @@ public class CpuBackpressureInterceptor {
         return null;
     }
 
+    // Debug: log when transformer is applied at class load time
+    private static final AgentBuilder.Transformer DEBUG_TRANSFORMER = (builder, typeDescription, classLoader, module, protectionDomain) -> {
+        String className = typeDescription.getName();
+        TargetSpec spec = findSpec(className);
+        if (spec != null) {
+            System.out.println("[ChaosAgent] CpuBackpressureInterceptor: Transforming at load time: " + spec.displayName + " (" + className + ")");
+        }
+        return builder;
+    };
+
     private static void retransformLoadedClasses(Instrumentation inst) {
         try {
             Class<?>[] loadedClasses = inst.getAllLoadedClasses();
+            System.out.println("[ChaosAgent] CpuBackpressureInterceptor: Checking " + loadedClasses.length + " loaded classes for retransform");
+            int matched = 0, modifiable = 0, retransformed = 0;
             for (Class<?> clazz : loadedClasses) {
                 String name = clazz.getName();
-                if (findSpec(name) != null && inst.isModifiableClass(clazz)) {
-                    try {
-                        inst.retransformClasses(clazz);
-                    } catch (UnmodifiableClassException ignored) {
+                if (findSpec(name) != null) {
+                    matched++;
+                    boolean isModifiable = inst.isModifiableClass(clazz);
+                    if (isModifiable) {
+                        modifiable++;
+                        try {
+                            inst.retransformClasses(clazz);
+                            retransformed++;
+                            System.out.println("[ChaosAgent] CpuBackpressureInterceptor: Retransformed " + name);
+                        } catch (UnmodifiableClassException ignored) {
+                            System.out.println("[ChaosAgent] CpuBackpressureInterceptor: UnmodifiableClassException for " + name);
+                        } catch (Exception e) {
+                            System.out.println("[ChaosAgent] CpuBackpressureInterceptor: Error retransforming " + name + ": " + e.getMessage());
+                        }
+                    } else {
+                        System.out.println("[ChaosAgent] CpuBackpressureInterceptor: NOT modifiable: " + name);
                     }
                 }
             }
+            System.out.println("[ChaosAgent] CpuBackpressureInterceptor: Matched=" + matched + ", Modifiable=" + modifiable + ", Retransformed=" + retransformed);
         } catch (Exception e) {
             System.err.println("[ChaosAgent] Error retransforming classes for CPU backpressure: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -151,72 +178,27 @@ public class CpuBackpressureInterceptor {
      * This runs on the carrier thread, directly affecting virtual thread scheduling.
      */
     public static class CpuBackpressureAdvice {
-        // Pre-computed prime numbers for busy-spin work
-        private static final int[] PRIMES = new int[10000];
-        static {
-            int count = 0;
-            for (int i = 2; count < PRIMES.length; i++) {
-                boolean isPrime = true;
-                for (int j = 2; j * j <= i; j++) {
-                    if (i % j == 0) { isPrime = false; break; }
-                }
-                if (isPrime) PRIMES[count++] = i;
-            }
-        }
-
         @Advice.OnMethodEnter(suppress = Throwable.class)
         public static long enter(@Advice.Origin("#m") String methodName) {
-            if (!ChaosAgent.ChaosConfig.cpuBackpressureEnabled) return 0L;
-            
-            int intensity = ChaosAgent.ChaosConfig.cpuBackpressureIntensity;
-            if (intensity <= 0) return 0L;
-
-            // Only apply to a subset of calls based on intensity
-            // Intensity 100 = every call, 50 = ~50% of calls, 10 = ~10% of calls
-            if (ThreadLocalRandom.current().nextInt(100) >= intensity) {
-                return 0L;
+            if (CpuBackpressureAdvice.class.getClassLoader() == null) {
+                return BootstrapStressState.applyCpuBackpressure();
+            } else if (ChaosAgent.ChaosConfig.cpuBackpressureEnabled) {
+                BootstrapStressStateAccess.configure(false, 0, true, ChaosAgent.ChaosConfig.cpuBackpressureIntensity);
+                return BootstrapStressState.applyCpuBackpressure();
             }
-
-            long startNanos = System.nanoTime();
-            
-            // Busy-spin: perform CPU-intensive but deterministic work
-            // Duration scales with intensity: 1000 - 100000 iterations
-            int iterations = 1000 + (intensity * 1000);
-            
-            // Use volatile to prevent JIT optimization of the loop
-            long result = 0;
-            for (int i = 0; i < iterations; i++) {
-                // Prime factorization-like work - hard to optimize away
-                int prime = PRIMES[i % PRIMES.length];
-                result ^= prime * (i + 1);
-                // Modulo and bitwise ops - CPU intensive
-                result = (result * 31) ^ (result >>> 16);
-            }
-            
-            // Prevent dead code elimination
-            if (result == Long.MIN_VALUE) {
-                // Never happens, but compiler doesn't know that
-                System.out.println("chaos-cpu-result: " + result);
-            }
-
-            long elapsedNanos = System.nanoTime() - startNanos;
-            TOTAL_BUSY_SPIN_NANOS.addAndGet(elapsedNanos);
-            BUSY_SPIN_COUNT.incrementAndGet();
-            
-            return elapsedNanos;
+            return 0L;
         }
 
         public static long getTotalBusySpinNanos() {
-            return TOTAL_BUSY_SPIN_NANOS.get();
+            return BootstrapStressStateAccess.busyNanos();
         }
 
         public static long getBusySpinCount() {
-            return BUSY_SPIN_COUNT.get();
+            return BootstrapStressStateAccess.busyCount();
         }
 
         public static void resetMetrics() {
-            TOTAL_BUSY_SPIN_NANOS.set(0);
-            BUSY_SPIN_COUNT.set(0);
+            BootstrapStressStateAccess.resetCpuMetrics();
         }
     }
 

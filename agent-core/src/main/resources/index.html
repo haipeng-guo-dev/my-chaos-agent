@@ -25,58 +25,78 @@
     </script>
     <style>
         :root {
-            /* Light theme (default) - High contrast */
+            /* Light theme (default) - Professional high contrast */
             --bg-primary: #ffffff;
             --bg-secondary: #f8fafc;
             --bg-tertiary: #f1f5f9;
+            --bg-elevated: #ffffff;
             --text-primary: #0f172a;
-            --text-secondary: #1e293b;
-            --text-muted: #475569;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --text-inverse: #ffffff;
             --border-color: #cbd5e1;
             --border-hover: #94a3b8;
-            --card-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
-            --card-shadow-hover: 0 10px 25px -5px rgba(15, 23, 42, 0.15);
+            --border-strong: #94a3b8;
+            --card-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+            --card-shadow-hover: 0 10px 25px -5px rgba(15, 23, 42, 0.12);
             --accent: #b45309;
             --accent-hover: #92400e;
-            --accent-bg: #fef3c7;
+            --accent-light: #fef3c7;
             --accent-text: #78350f;
-            --green-bg: #dcfce7;
-            --green-text: #166534;
-            --red-bg: #fee2e2;
-            --red-text: #991b1b;
-            --yellow-bg: #fef3c7;
-            --yellow-text: #92400e;
+            --success-bg: #dcfce7;
+            --success-text: #166534;
+            --success-border: #86efac;
+            --danger-bg: #fee2e2;
+            --danger-text: #991b1b;
+            --danger-border: #fca5a5;
+            --warning-bg: #fef3c7;
+            --warning-text: #92400e;
+            --warning-border: #fcd34d;
+            --info-bg: #eff6ff;
+            --info-text: #1e40af;
+            --info-border: #93c5fd;
             --code-bg: #f1f5f9;
             --code-text: #0f172a;
             --disabled-opacity: 0.5;
+            --focus-ring: #b45309;
         }
 
         @media (prefers-color-scheme: dark) {
             :root:not(.light) {
-                /* Dark theme - High contrast */
+                /* Dark theme - Professional high contrast */
                 --bg-primary: #020617;
                 --bg-secondary: #0f172a;
                 --bg-tertiary: #1e293b;
+                --bg-elevated: #1e293b;
                 --text-primary: #f8fafc;
                 --text-secondary: #e2e8f0;
                 --text-muted: #94a3b8;
+                --text-inverse: #020617;
                 --border-color: #334155;
                 --border-hover: #475569;
+                --border-strong: #64748b;
                 --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
                 --card-shadow-hover: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
                 --accent: #fbbf24;
                 --accent-hover: #f59e0b;
-                --accent-bg: #78350f;
-                --accent-text: #fef3c7;
-                --green-bg: #064e3b;
-                --green-text: #86efac;
-                --red-bg: #7f1d1d;
-                --red-text: #fca5a5;
-                --yellow-bg: #78350f;
-                --yellow-text: #fde68a;
+                --accent-light: #78350f;
+                --accent-text: #78350f;
+                --success-bg: #064e3b;
+                --success-text: #86efac;
+                --success-border: #166534;
+                --danger-bg: #7f1d1d;
+                --danger-text: #fca5a5;
+                --danger-border: #991b1b;
+                --warning-bg: #78350f;
+                --warning-text: #fde68a;
+                --warning-border: #b45309;
+                --info-bg: #1e3a5f;
+                --info-text: #93c5fd;
+                --info-border: #3b82f6;
                 --code-bg: #1e293b;
                 --code-text: #f8fafc;
                 --disabled-opacity: 0.6;
+                --focus-ring: #fbbf24;
             }
         }
 
@@ -84,52 +104,72 @@
             --bg-primary: #ffffff;
             --bg-secondary: #f8fafc;
             --bg-tertiary: #f1f5f9;
+            --bg-elevated: #ffffff;
             --text-primary: #0f172a;
-            --text-secondary: #1e293b;
-            --text-muted: #475569;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --text-inverse: #ffffff;
             --border-color: #cbd5e1;
             --border-hover: #94a3b8;
-            --card-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
-            --card-shadow-hover: 0 10px 25px -5px rgba(15, 23, 42, 0.15);
+            --border-strong: #94a3b8;
+            --card-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+            --card-shadow-hover: 0 10px 25px -5px rgba(15, 23, 42, 0.12);
             --accent: #b45309;
             --accent-hover: #92400e;
-            --accent-bg: #fef3c7;
+            --accent-light: #fef3c7;
             --accent-text: #78350f;
-            --green-bg: #dcfce7;
-            --green-text: #166534;
-            --red-bg: #fee2e2;
-            --red-text: #991b1b;
-            --yellow-bg: #fef3c7;
-            --yellow-text: #92400e;
+            --success-bg: #dcfce7;
+            --success-text: #166534;
+            --success-border: #86efac;
+            --danger-bg: #fee2e2;
+            --danger-text: #991b1b;
+            --danger-border: #fca5a5;
+            --warning-bg: #fef3c7;
+            --warning-text: #92400e;
+            --warning-border: #fcd34d;
+            --info-bg: #eff6ff;
+            --info-text: #1e40af;
+            --info-border: #93c5fd;
             --code-bg: #f1f5f9;
             --code-text: #0f172a;
             --disabled-opacity: 0.5;
+            --focus-ring: #b45309;
         }
 
         .dark {
             --bg-primary: #020617;
             --bg-secondary: #0f172a;
             --bg-tertiary: #1e293b;
+            --bg-elevated: #1e293b;
             --text-primary: #f8fafc;
             --text-secondary: #e2e8f0;
-            --text-muted: #94a3af;
+            --text-muted: #94a3b8;
+            --text-inverse: #020617;
             --border-color: #334155;
             --border-hover: #475569;
+            --border-strong: #64748b;
             --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
             --card-shadow-hover: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
             --accent: #fbbf24;
             --accent-hover: #f59e0b;
-            --accent-bg: #78350f;
-            --accent-text: #fef3c7;
-            --green-bg: #064e3b;
-            --green-text: #86efac;
-            --red-bg: #7f1d1d;
-            --red-text: #fca5a5;
-            --yellow-bg: #78350f;
-            --yellow-text: #fde68a;
+            --accent-light: #78350f;
+            --accent-text: #78350f;
+            --success-bg: #064e3b;
+            --success-text: #86efac;
+            --success-border: #166534;
+            --danger-bg: #7f1d1d;
+            --danger-text: #fca5a5;
+            --danger-border: #991b1b;
+            --warning-bg: #78350f;
+            --warning-text: #fde68a;
+            --warning-border: #b45309;
+            --info-bg: #1e3a5f;
+            --info-text: #93c5fd;
+            --info-border: #3b82f6;
             --code-bg: #1e293b;
             --code-text: #f8fafc;
             --disabled-opacity: 0.6;
+            --focus-ring: #fbbf24;
         }
 
         .metric-card { transition: transform 0.2s, box-shadow 0.2s; }
@@ -295,12 +335,12 @@
                 </div>
                 <div class="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-4">
                     <div class="metric-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1rem;">
-                        <div class="text-xs font-medium uppercase tracking-wider" style="color: var(--text-muted);">Mem Retained (Phase 3)</div>
+                        <div class="text-xs font-medium uppercase tracking-wider" style="color: var(--text-muted);">Mem Retained</div>
                         <div id="memRetainedMb" class="mt-1 text-2xl font-bold" style="color: var(--text-primary);">0 MB</div>
                         <div class="text-xs" style="color: var(--text-muted);">Entries: <span id="memEntries">0</span></div>
                     </div>
                     <div class="metric-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1rem;">
-                        <div class="text-xs font-medium uppercase tracking-wider" style="color: var(--text-muted);">CPU Busy-Spin (Phase 3)</div>
+                        <div class="text-xs font-medium uppercase tracking-wider" style="color: var(--text-muted);">CPU Busy-Spin</div>
                         <div id="cpuBusyMs" class="mt-1 text-2xl font-bold" style="color: var(--text-primary);">0 ms</div>
                         <div class="text-xs" style="color: var(--text-muted);">Count: <span id="cpuBusyCount">0</span></div>
                     </div>
@@ -339,14 +379,14 @@
                         <span id="importStatus" class="text-sm" style="color: var(--text-muted);"></span>
                     </div>
                 </div>
-                <p class="text-xs mt-2" style="color: var(--text-muted);">Save/load complete chaos configurations including all Phase 2 & 3 settings</p>
+                <p class="text-xs mt-2" style="color: var(--text-muted);">Save/load complete chaos configurations</p>
             </div>
         </section>
 
-        <!-- Deep JVM Stressors (Phase 3) -->
+        <!-- Deep JVM Stressors -->
         <section class="mb-8">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <svg class="w-5 h-5 text-chaos-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <h2 class="text-lg font-semibold mb-4 flex items-center gap-2" style="color: var(--text-primary);">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--accent);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 Deep JVM Stressors
             </h2>
             
@@ -354,10 +394,10 @@
             <div class="section-card mb-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-3">
-                        <svg class="w-6 h-6 text-chaos-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--accent);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         <div>
-                            <h3 class="font-semibold text-gray-900">Virtual Thread Carrier Pinning</h3>
-                            <p class="text-sm text-gray-500">Force virtual threads to pin to carrier threads via synchronized blocks</p>
+                            <h3 class="font-semibold" style="color: var(--text-primary);">Virtual Thread Carrier Pinning</h3>
+                            <p class="text-sm" style="color: var(--text-muted);">Force virtual threads to pin to carrier threads via synchronized blocks</p>
                         </div>
                     </div>
                     <label class="toggle-switch">
@@ -365,15 +405,15 @@
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
-                <div id="pinningControls" class="space-y-4 disabled border-t border-gray-200 pt-4">
+                <div id="pinningControls" class="space-y-4 disabled border-t pt-4" style="border-color: var(--border-color);">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Pinning Probability: <span id="pinningProbValue">10</span>%</label>
+                        <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">Pinning Probability: <span id="pinningProbValue">10</span>%</label>
                         <div class="slider-container">
                             <input type="range" id="pinningProbability" min="0" max="100" step="1" value="10" oninput="updatePinningProbDisplay(); updateConfig()">
                         </div>
-                        <p class="text-xs text-gray-500">Percentage of virtual thread executions that will be pinned (synchronized block)</p>
+                        <p class="text-xs" style="color: var(--text-muted);">Percentage of virtual thread executions that will be pinned (synchronized block)</p>
                     </div>
-                    <div class="bg-chaos-50 border border-chaos-200 rounded-lg p-3 text-xs text-chaos-800">
+                    <div class="p-3 rounded-lg text-xs" style="background: var(--warning-bg); border: 1px solid var(--warning-border); color: var(--warning-text);">
                         <strong>⚠ Warning:</strong> High pinning probability (>50%) can severely degrade throughput by preventing virtual thread unmounting. Use carefully in production.
                     </div>
                 </div>
@@ -383,10 +423,10 @@
             <div class="section-card mb-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-3">
-                        <svg class="w-6 h-6 text-chaos-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--accent);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         <div>
-                            <h3 class="font-semibold text-gray-900">Managed Memory Pressure</h3>
-                            <p class="text-sm text-gray-500">Retain allocated objects in ThreadLocal/ConcurrentHashMap to simulate memory leaks</p>
+                            <h3 class="font-semibold" style="color: var(--text-primary);">Managed Memory Pressure</h3>
+                            <p class="text-sm" style="color: var(--text-muted);">Retain allocated objects in ThreadLocal/ConcurrentHashMap to simulate memory leaks</p>
                         </div>
                     </div>
                     <label class="toggle-switch">
@@ -394,20 +434,20 @@
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
-                <div id="memoryPressureControls" class="space-y-4 disabled border-t border-gray-200 pt-4">
+                <div id="memoryPressureControls" class="space-y-4 disabled border-t pt-4" style="border-color: var(--border-color);">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Target Retention: <span id="memoryPressureValue">100</span> MB</label>
+                        <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">Target Retention: <span id="memoryPressureValue">100</span> MB</label>
                         <div class="slider-container">
                             <input type="range" id="memoryPressureMb" min="10" max="500" step="10" value="100" oninput="updateMemoryPressureDisplay(); updateConfig()">
                         </div>
-                        <p class="text-xs text-gray-500">Maximum memory to retain across all allocation sites (hard cap: 500 MB)</p>
+                        <p class="text-xs" style="color: var(--text-muted);">Maximum memory to retain across all allocation sites (hard cap: 500 MB)</p>
                     </div>
                     <div class="flex gap-4 text-sm">
-                        <span class="text-gray-600">Retained: <strong id="memRetained">0</strong> MB</span>
-                        <span class="text-gray-600">Entries: <strong id="memEntries">0</strong></span>
-                        <button onclick="clearMemoryRetention()" class="text-chaos-600 hover:underline text-xs">Clear Retention</button>
+                        <span style="color: var(--text-secondary);">Retained: <strong id="memRetained">0</strong> MB</span>
+                        <span style="color: var(--text-secondary);">Entries: <strong id="memEntries">0</strong></span>
+                        <button onclick="clearMemoryRetention()" class="hover:underline text-xs" style="color: var(--accent);">Clear Retention</button>
                     </div>
-                    <div class="bg-chaos-50 border border-chaos-200 rounded-lg p-3 text-xs text-chaos-800">
+                    <div class="p-3 rounded-lg text-xs" style="background: var(--info-bg); border: 1px solid var(--info-border); color: var(--info-text);">
                         <strong>Safety:</strong> Automatic hard cap at 500 MB / 10,000 entries. Triggers emergency cleanup on OOM.
                     </div>
                 </div>
@@ -417,10 +457,10 @@
             <div class="section-card mb-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-3">
-                        <svg class="w-6 h-6 text-chaos-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--accent);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <div>
-                            <h3 class="font-semibold text-gray-900">CPU Thermal Backpressure</h3>
-                            <p class="text-sm text-gray-500">Busy-spin computation on carrier threads to simulate CPU throttling/noisy neighbors</p>
+                            <h3 class="font-semibold" style="color: var(--text-primary);">CPU Thermal Backpressure</h3>
+                            <p class="text-sm" style="color: var(--text-muted);">Busy-spin computation on carrier threads to simulate CPU throttling/noisy neighbors</p>
                         </div>
                     </div>
                     <label class="toggle-switch">
@@ -428,25 +468,25 @@
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
-                <div id="cpuBackpressureControls" class="space-y-4 disabled border-t border-gray-200 pt-4">
+                <div id="cpuBackpressureControls" class="space-y-4 disabled border-t pt-4" style="border-color: var(--border-color);">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Intensity: <span id="cpuIntensityValue">50</span>%</label>
+                        <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">Intensity: <span id="cpuIntensityValue">50</span>%</label>
                         <div class="slider-container">
                             <input type="range" id="cpuBackpressureIntensity" min="0" max="100" step="5" value="50" oninput="updateCpuIntensityDisplay(); updateConfig()">
                         </div>
-                        <p class="text-xs text-gray-500">CPU load intensity (0-100%). Higher = more busy-spin iterations per interception</p>
+                        <p class="text-xs" style="color: var(--text-muted);">CPU load intensity (0-100%). Higher = more busy-spin iterations per interception</p>
                     </div>
                     <div class="flex gap-4 text-sm">
-                        <span class="text-gray-600">Busy-spin time: <strong id="cpuBusyNanos">0</strong> ms</span>
-                        <span class="text-gray-600">Count: <strong id="cpuBusyCount">0</strong></span>
-                        <button onclick="resetCpuMetrics()" class="text-chaos-600 hover:underline text-xs">Reset Metrics</button>
+                        <span style="color: var(--text-secondary);">Busy-spin time: <strong id="cpuBusyNanos">0</strong> ms</span>
+                        <span style="color: var(--text-secondary);">Count: <strong id="cpuBusyCount">0</strong></span>
+                        <button onclick="resetCpuMetrics()" class="hover:underline text-xs" style="color: var(--accent);">Reset Metrics</button>
                     </div>
-                    <div class="bg-chaos-50 border border-chaos-200 rounded-lg p-3 text-xs text-chaos-800">
+                    <div class="p-3 rounded-lg text-xs" style="background: var(--info-bg); border: 1px solid var(--info-border); color: var(--info-text);">
                         <strong>Note:</strong> Runs on ForkJoinPool carrier threads, directly impacting virtual thread scheduling latency.
                     </div>
                 </div>
             </div>
-        </section>
+        </section
 
         <!-- Footer -->
         <footer class="text-center text-sm pt-6" style="border-top: 1px solid var(--border-color); color: var(--text-muted);">
