@@ -222,6 +222,54 @@ POST /api/profile         # Import profile JSON, apply config
 
 ---
 
+## 📊 Dashboard Field Reference
+
+### GET `/api/status` — JVM Telemetry Snapshot
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `timestamp` | string | ISO-8601 time of snapshot |
+| `jvm.version` | string | Java version (e.g., `21.0.3`) |
+| `jvm.vendor` | string | JVM vendor (e.g., `Eclipse Adoptium`) |
+| `jvm.pid` | number | Process ID |
+| `memory.used` | number | Heap used (bytes) |
+| `memory.free` | number | Heap free (bytes) |
+| `memory.total` | number | Heap total (bytes) |
+| `memory.max` | number | Max heap (bytes, `-Xmx`) |
+| `memory.usedPercent` | number | Heap usage % |
+| `threads.count` | number | Live threads (platform + virtual) |
+| `threads.peakCount` | number | Peak thread count since start |
+| `agent.started` | boolean | Agent running |
+| `agent.port` | number | Dashboard port |
+| `phase3.memRetainedMb` | number | **Memory Pressure**: MB retained by agent (capped at 500 MB) |
+| `phase3.memEntries` | number | **Memory Pressure**: Number of retained objects |
+| `phase3.cpuBusyMs` | number | **CPU Backpressure**: Cumulative busy-spin time (ms) |
+| `phase3.cpuBusyCount` | number | **CPU Backpressure**: Number of busy-spin executions |
+
+### SSE `/api/metrics/stream` — Live Metrics (1s interval)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `seq` | number | Monotonic event sequence |
+| `timestamp` | string | ISO-8601 event time |
+| `memory.usedPercent` | number | Heap usage % at event time |
+| `threads` | number | Live thread count |
+| `phase3.memRetainedMb` | number | Current memory retained (MB) |
+| `phase3.memEntries` | number | Current retained object count |
+| `phase3.cpuBusyMs` | number | Cumulative busy-spin time (ms) |
+| `phase3.cpuBusyCount` | number | Cumulative busy-spin executions |
+
+### Phase 3 Field Meanings
+
+| UI Label | API Field | What It Measures |
+|----------|-----------|------------------|
+| **Mem Retained** | `memRetainedMb` | MB of byte arrays held in `ConcurrentHashMap` by `MemoryPressureInterceptor` — simulates memory leak / cache bloat |
+| **Entries** | `memEntries` | Number of retained objects (each ~1–100 KB) |
+| **CPU Busy-Spin** | `cpuBusyMs` | Total milliseconds spent in artificial busy loops by `CpuBackpressureInterceptor` on carrier threads |
+| **Count** | `cpuBusyCount` | How many times busy-spin was triggered (each = one intercepted method entry) |
+
+---
+
 ## 🔌 Attach to a Running JVM
 
 No restart needed — attach directly:
