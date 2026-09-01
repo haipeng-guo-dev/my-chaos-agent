@@ -102,7 +102,7 @@
                         <includes>
                             <include>**/*Test.java</include>
                         </includes>
-                        <argLine>--add-opens=java.base/com.sun.net.httpserver=ALL-UNNAMED --add-exports=java.base/com.sun.net.httpserver=ALL-UNNAMED</argLine>
+                        <argLine>--add-opens=jdk.httpserver/com.sun.net.httpserver=ALL-UNNAMED --add-exports=jdk.httpserver/com.sun.net.httpserver=ALL-UNNAMED</argLine>
                     </configuration>
                 </plugin>
             </plugins>
@@ -117,7 +117,7 @@
                     <includes>
                         <include>**/*Test.java</include>
                     </includes>
-                    <argLine>--add-opens=java.base/com.sun.net.httpserver=ALL-UNNAMED --add-exports=java.base/com.sun.net.httpserver=ALL-UNNAMED --add-opens=java.base/sun.net.httpserver=ALL-UNNAMED --add-exports=java.base/sun.net.httpserver=ALL-UNNAMED</argLine>
+                    <argLine>--add-opens=jdk.httpserver/com.sun.net.httpserver=ALL-UNNAMED --add-exports=jdk.httpserver/com.sun.net.httpserver=ALL-UNNAMED --add-opens=jdk.httpserver/sun.net.httpserver=ALL-UNNAMED --add-exports=jdk.httpserver/sun.net.httpserver=ALL-UNNAMED</argLine>
                 </configuration>
             </plugin>
         </plugins>
