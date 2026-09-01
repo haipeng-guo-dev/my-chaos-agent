@@ -8,5 +8,5 @@ echo "Starting Chaos Agent on port $PORT..."
 echo
 
 java -javaagent:target/agent-core-0.1.0-SNAPSHOT.jar=port=$PORT,memoryPressureEnabled=true,memoryPressureMb=100,cpuBackpressureEnabled=true,cpuBackpressureIntensity=50 \
-     -cp "target/agent-core-0.1.0-SNAPSHOT.jar;target/test-classes" \
+     -cp "target/agent-core-0.1.0-SNAPSHOT.jar:target/test-classes" \
      com.chaosagent.agent.ChaosDemoApp
