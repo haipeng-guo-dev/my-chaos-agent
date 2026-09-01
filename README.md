@@ -62,6 +62,11 @@ Built for Java 21+ and Spring Boot (RestTemplate, WebClient, Feign), it's the fa
 - Live SSE metrics stream: heap usage, thread counts (platform/virtual), fault counters
 - One-click profile export/import (JSON)
 
+<p align="center">
+  <img src="docs/dashboard.png" alt="Chaos Agent Dashboard" width="90%">
+</p>
+<p align="center"><em>Chaos Agent Dashboard — real-time metrics, stressor controls, profile management</em></p>
+
 **2. REST API (for automation/CI)**
 - `GET /api/status` — JVM telemetry (PID, version, memory, thread breakdown)
 - `POST /api/config` — Apply chaos config programmatically
